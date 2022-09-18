@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <direct.h>
+
 #include <time.h>
 /*#include "linklist_headnode.h"*/
 #define N 48
@@ -97,8 +100,8 @@ int doautores(char *param[]) {
         }
     }else { //Imprime ambos
 
-            printf("Eloy Sastre Sobrino: eloy.sastre@udc.es");
-            printf("Daniel Pérez Mosquera: daniel.pmosquera@udc.es");
+            printf("Eloy Sastre Sobrino: eloy.sastre@udc.es\n");
+            printf("Daniel Pérez Mosquera: daniel.pmosquera@udc.es\n");
         }
     return 0;
 }
@@ -111,17 +114,52 @@ int doFecha(char *param[]) {
 
     if (param != 0) {
         if (strcmp(param[1], "-d") == 0) { //Imprime formato DD/MM//AA
-            printf("%d/%d/%d", day, month, year); }
+            printf("%d/%d/%d\n", day, month, year); }
         else if (strcmp(param[1], "-h") == 0) { //Imprime formato hh:mm:ss
-            printf("%d:%d:%d", hour,min,sec);
+            printf("%d:%d:%d\n", hour,min,sec);
         }
     }else { //Imprime los dos
-        printf("%d/%d/%d", t->tm_mday, t->tm_mon, t->tm_year);
-        printf("%d:%d:%d", t->tm_hour, t->tm_min, t->tm_sec);
+        printf("%d/%d/%d  -->", t->tm_mday, t->tm_mon, t->tm_year);
+        printf("%d:%d:%d\n", t->tm_hour, t->tm_min, t->tm_sec);
     }
     return 0;
 }
 
+int dopid(char *param[]){
+    int pid,p_pid;
+    pid=getpid();
+    p_pid=getppid();
 
+    if (param != 0) {
+        if (strcmp(param[1], "-p") == 0) { //proceso padre
+            printf("Proceso padre del shell: %d\n", p_pid);
+        }
+    }
+    else { //proceso hijo
+        printf("Proceso del shell: %d\n", pid);
+
+    }
+    return 0;
+
+}
+
+int docarpeta (char *param[]){
+    char buffer [1024];
+    if (_getcwd(buffer,1024)==NULL){
+    printf("Get current working directory fail");
+return 1;}
+    else{
+        printf("Current working directory: \n %s \n", buffer);
+    }
+
+    if (param != 0) {
+        if (strcmp(param[1], "direct") == 0) {
+        }
+    }
+    else {
+
+    }
+
+}
 
 
