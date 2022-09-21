@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <direct.h>
-
+#include <sys/syscall.h>
+#include <sys/utsname.h>
 #include <time.h>
+
 /*#include "linklist_headnode.h"*/
 #define N 48
+
 void leerEntrada(char cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
 int ProcesarEntrada(char *trozos[], int ntrozos);
@@ -18,8 +21,10 @@ int docarpeta(char *param[]);
 int docomando(char *param[]);
 int dofecha(char *param[]);
 int doexit(char *param[]);
-int doquit(char *param[]);
-
+int dosalir(char *param[]);
+int dobye(char *param[]);
+int doinfosis(char *param[]);
+int doayuda(char *param[]);
 
 int main (){
     int salir=0;
@@ -72,10 +77,20 @@ int ProcesarEntrada(char * trozos[], int ntrozos){
         return dohist(param);
     }else if(strcmp(param[0], "comando")==0){
         return docomando(param);
+    }else if(strcmp(param[0], "salir")==0){
+        return dosalir(param);
+
     }else if(strcmp(param[0], "exit")==0){
         return doexit(param);
-    }else if(strcmp(param[0], "comando")==0){
-    return doquit(param);
+
+    }else if(strcmp(param[0], "bye")==0){
+        return dobye(param);
+
+    }else if(strcmp(param[0], "infosis")==0){
+        return doinfosis(param);
+
+    }else if(strcmp(param[0], "ayuda")==0){
+    return doayuda(param);
 
     }else {
         printf("\nEste comando no existe\n");
@@ -86,7 +101,10 @@ int ProcesarEntrada(char * trozos[], int ntrozos){
 int doexit(char *param[]) {
     return -1;
 }
-int doquit(char *param[]){
+int dobye(char *param[]) {
+    return -1;
+}
+int dosalir(char *param[]){
     return -1;
 }
 int doautores(char *param[]) {
@@ -103,6 +121,8 @@ int doautores(char *param[]) {
             printf("Eloy Sastre Sobrino: eloy.sastre@udc.es\n");
             printf("Daniel Pérez Mosquera: daniel.pmosquera@udc.es\n");
         }
+    printf("\n");
+
     return 0;
 }
 int doFecha(char *param[]) {
@@ -119,10 +139,35 @@ int doFecha(char *param[]) {
             printf("%d:%d:%d\n", hour,min,sec);
         }
     }else { //Imprime los dos
-        printf("%d/%d/%d  -->", t->tm_mday, t->tm_mon, t->tm_year);
-        printf("%d:%d:%d\n", t->tm_hour, t->tm_min, t->tm_sec);
+        printf("%d/%d/%d  --> " , day, month, year);
+        printf("%d:%d:%d\n", hour,min,sec);
     }
+    printf("\n");
+
     return 0;
+}
+int doinfosis(char *param[]){
+    struct utsname info;
+    if(!uname(&info)){
+        printf("%s(%s), OS: %s-%s-%s \n", info.nodename,info.machine, info.sysname, info.releasem, info.version);
+    }
+}
+
+int doayuda(char*param[]){
+    if(**param!=0){
+        if(strcmp(param[1],"cmd")==0){
+
+        }else{
+
+            printf("\nLista de comandos: ");
+
+            printf("autores[-l][-n]\tpid[-p]\tcarpeta[direct]\tfecha[-d][-h]\thist[-c][-N]\tcomando N(número de comando)\tinfosis\tayuda[cmd]\n");
+            /*for(int i=0;i<**param;i++){
+                printf("%c", *param[i]);
+            }*/
+        }
+        printf("\n");
+    }
 }
 
 int dopid(char *param[]){
@@ -139,27 +184,26 @@ int dopid(char *param[]){
         printf("Proceso del shell: %d\n", pid);
 
     }
+    printf("\n");
+
     return 0;
 
 }
 
 int docarpeta (char *param[]){
-    char buffer [1024];
-    if (_getcwd(buffer,1024)==NULL){
-    printf("Get current working directory fail");
-return 1;}
-    else{
-        printf("Current working directory: \n %s \n", buffer);
-    }
-
+    char *currentDir [1024];
     if (param != 0) {
         if (strcmp(param[1], "direct") == 0) {
+
         }
     }
-    else {
+    else {//Imprime el directorio actual.
+        char *currentDir= getcwd(NULL,0);
+        printf("\nPWD==>%s",currentDir);
 
-    }
+    }        printf("\n");
 
+    return 0;
 }
 
 
