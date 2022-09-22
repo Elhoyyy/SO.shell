@@ -5,8 +5,7 @@
 #include <sys/syscall.h>
 #include <sys/utsname.h>
 #include <time.h>
-
-/*#include "linklist_headnode.h"*/
+#include"headed_linked_list.c"
 #define N 48
 
 void leerEntrada(char cadena);
@@ -151,25 +150,52 @@ void doinfosis(char *param[]){
         printf("%s(%s), OS: %s-%s-%s \n", info.nodename,info.machine, info.sysname, info.releasem, info.version);
     }
 }
-void xDDD(char *param[]){
+void parametros(char *param[]){
+    *param[0]="ayuda";
+    *param[1="bye"
+    *param[2]="exit"
+    *param[3]="salir"
+    *param[4]="infosis"
+    *param[5]="comando"
+    *param[6]="hist"
+    *param[7]="autores"
+    *param[8]="fecha"
+    *param[9]="pid"
+    *param[10]="carpeta"
+
 
 }
-void xDDD2(char *param []){
-
+void infoparametros(char *param []){
+    *param[0]="ayuda [cmd]	Muestra ayuda sobre los comandos";
+    *param[1="bye 	Termina la ejecucion del shell"
+    *param[2]="exit"
+    *param[3]="salir 	Termina la ejecucion del shell 	Termina la ejecucion del shell"
+    *param[4]="infosis 	Muestra informacion de la maquina donde corre el shell"
+    *param[5]="comando [-N]	Repite el comando N (del historico)"
+    *param[6]="hist [-c|-N]	Muestra el historico de comandos, con -c lo borra"
+    *param[7]="autores [-n|-l]	Muestra los nombres y logins de los autores"
+    *param[8]="fecha [-d|.h	Muestra la fecha y o la hora actual"
+    *param[9]="pid [-p]	Muestra el pid del shell o de su proceso padre"
+    *param[10]="carpeta [dir]	Cambia (o muestra) el directorio actual del shell"
 }
 
 void doayuda(char*param[],){
+    char* ayuda[11];
+    char* ayuda2[11];
     if(**param!=0){
         if(strcmp(param[1],"cmd")==0){
+          
+            printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:
+f           in salir bye fecha pid autores hist comando carpeta infosis ayuda"); 
+         }
 
-        }else{
-
-            printf("\nLista de comandos: ");
-
-            printf("autores[-l][-n]\tpid[-p]\tcarpeta[direct]\tfecha[-d][-h]\thist[-c][-N]\tcomando N(número de comando)\tinfosis\tayuda[cmd]\n");
-            /*for(int i=0;i<**param;i++){
-                printf("%c", *param[i]);
-            }*/
+        else{
+            infoparametros(ayuda);
+            parametros(ayuda2);
+            for(int i=0;i<param[];i++){
+             if(strcmp(param[i],infoparametros)==0){
+                printf("%s",parametros);
+             }
         }
         printf("\n");
     }
@@ -195,9 +221,14 @@ void dopid(char *param[]){
 }
 
 void docarpeta (char *param[]){
-    char *currentDir [1024];
     if (param != 0) {
         if (strcmp(param[1], "direct") == 0) {
+            if(strcmp(chdir==-1){
+                printf("No se pudo cambiar el directorio");
+            
+            }else{
+                printf("%s", chdir(*param[]);)
+            }
 
         }
     }
@@ -209,10 +240,5 @@ void docarpeta (char *param[]){
 
 
 }
-/*int hist(**param, ){
-}
-
-int comando(**param, ){}
-/*
 
 
