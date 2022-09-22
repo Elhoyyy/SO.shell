@@ -65,31 +65,31 @@ void ProcesarEntrada(char * trozos[], int ntrozos){
     int i=0;
     if (param[0]==NULL){exit(0);}
     if(strcmp(param[0], "autores")==0){
-         doautores(param);
+        doautores(param);
     }else if(strcmp(param[0], "pid")==0){
-         dopid(param);
+        dopid(param);
     }else if(strcmp(param[0], "carpeta")==0){
-         docarpeta(param);
+        docarpeta(param);
     }else if(strcmp(param[0], "fecha")==0){
-         dofecha(param);
+        dofecha(param);
     }else if(strcmp(param[0], "hist")==0){
-         //dohist(param);
+        //dohist(param);
     }else if(strcmp(param[0], "comando")==0){
-         //docomando(param,);
+        //docomando(param,);
     }else if(strcmp(param[0], "salir")==0){
-         dosalir(param);
+        dosalir(param);
 
     }else if(strcmp(param[0], "exit")==0){
-         doexit(param);
+        doexit(param);
 
     }else if(strcmp(param[0], "bye")==0){
-         dobye(param);
+        dobye(param);
 
     }else if(strcmp(param[0], "infosis")==0){
-         doinfosis(param);
+        doinfosis(param);
 
     }else if(strcmp(param[0], "ayuda")==0){
-     doayuda(param);
+        doayuda(param);
 
     }else {
         printf("\nEste comando no existe\n");
@@ -99,7 +99,7 @@ void ProcesarEntrada(char * trozos[], int ntrozos){
 
 void doexit(char *param[]) {
     exit(0)
-;}
+            ;}
 void dobye(char *param[]) {
     exit(0);
 }
@@ -117,9 +117,9 @@ void doautores(char *param[]) {
         }
     }else { //Imprime ambos
 
-            printf("Eloy Sastre Sobrino: eloy.sastre@udc.es\n");
-            printf("Daniel Pérez Mosquera: daniel.pmosquera@udc.es\n");
-        }
+        printf("Eloy Sastre Sobrino: eloy.sastre@udc.es\n");
+        printf("Daniel Pérez Mosquera: daniel.pmosquera@udc.es\n");
+    }
     printf("\n");
 
 }
@@ -152,93 +152,92 @@ void doinfosis(char *param[]){
 }
 void parametros(char *param[]){
     *param[0]="ayuda";
-    *param[1="bye"
-    *param[2]="exit"
-    *param[3]="salir"
-    *param[4]="infosis"
-    *param[5]="comando"
-    *param[6]="hist"
-    *param[7]="autores"
-    *param[8]="fecha"
-    *param[9]="pid"
-    *param[10]="carpeta"
+    *param[1]="bye";
+    *param[2]="exit";
+    *param[3]="salir";
+    *param[4]="infosis";
+    *param[5]="comando";
+    *param[6]="hist";
+    *param[7]="autores";
+    *param[8]="fecha";
+    *param[9]="pid";
+    *param[10]="carpeta";
 
 
 }
 void infoparametros(char *param []){
     *param[0]="ayuda [cmd]	Muestra ayuda sobre los comandos";
-    *param[1="bye 	Termina la ejecucion del shell"
-    *param[2]="exit"
-    *param[3]="salir 	Termina la ejecucion del shell 	Termina la ejecucion del shell"
-    *param[4]="infosis 	Muestra informacion de la maquina donde corre el shell"
-    *param[5]="comando [-N]	Repite el comando N (del historico)"
-    *param[6]="hist [-c|-N]	Muestra el historico de comandos, con -c lo borra"
-    *param[7]="autores [-n|-l]	Muestra los nombres y logins de los autores"
-    *param[8]="fecha [-d|.h	Muestra la fecha y o la hora actual"
-    *param[9]="pid [-p]	Muestra el pid del shell o de su proceso padre"
-    *param[10]="carpeta [dir]	Cambia (o muestra) el directorio actual del shell"
+    *param[1]="bye 	Termina la ejecucion del shell";
+    *param[2]="exit";
+    *param[3]="salir 	Termina la ejecucion del shell 	Termina la ejecucion del shell";
+    *param[4]="infosis 	Muestra informacion de la maquina donde corre el shell";
+    *param[5]="comando [-N]	Repite el comando N (del historico)";
+    *param[6]="hist [-c|-N]	Muestra el historico de comandos, con -c lo borra";
+    *param[7]="autores [-n|-l]	Muestra los nombres y logins de los autores";
+    *param[8]="fecha [-d|.h	Muestra la fecha y o la hora actual";
+    *param[9]="pid [-p]	Muestra el pid del shell o de su proceso padre";
+    *param[10]="carpeta [dir]	Cambia (o muestra) el directorio actual del shell";
 }
 
-void doayuda(char*param[],){
-    char* ayuda[11];
-    char* ayuda2[11];
-    if(**param!=0){
-        if(strcmp(param[1],"cmd")==0){
-          
-            printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:
-f           in salir bye fecha pid autores hist comando carpeta infosis ayuda"); 
-         }
+void doayuda(char*param[]) {
+    char *ayuda[11];
+    char *ayuda2[11];
+    if (**param != 0) {
+        if (strcmp(param[1], "cmd") == 0) {
 
-        else{
+            printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda");
+        } else {
             infoparametros(ayuda);
             parametros(ayuda2);
-            for(int i=0;i<param[];i++){
-             if(strcmp(param[i],infoparametros)==0){
-                printf("%s",parametros);
-             }
+            for (int i = 0; i < param[11]; i++) {
+                if (strcmp(param[i], infoparametros) == 0) {
+                    printf("%s", parametros);
+                }
+            }
+            printf("\n");
+        }
+    }
+}
+
+    void dopid(char *param[]){
+        int pid,p_pid;
+        pid=getpid();
+        p_pid=getppid();
+
+        if (param != 0) {
+            if (strcmp(param[1], "-p") == 0) { //proceso padre
+                printf("Proceso padre del shell: %d\n", p_pid);
+            }
+        }
+        else { //proceso hijo
+            printf("Proceso del shell: %d\n", pid);
+
         }
         printf("\n");
-    }
-}
 
-void dopid(char *param[]){
-    int pid,p_pid;
-    pid=getpid();
-    p_pid=getppid();
-
-    if (param != 0) {
-        if (strcmp(param[1], "-p") == 0) { //proceso padre
-            printf("Proceso padre del shell: %d\n", p_pid);
-        }
-    }
-    else { //proceso hijo
-        printf("Proceso del shell: %d\n", pid);
 
     }
-    printf("\n");
 
+    void docarpeta (char *param[]){
+        if (param != 0) {
+            if (strcmp(param[1], "direct") == 0) {
+                if((chdir(*param)==-1)){
+                    printf("No se pudo cambiar el directorio");
 
-}
+                }else{
+                    printf("%s", chdir(*param[]);)
+                }
 
-void docarpeta (char *param[]){
-    if (param != 0) {
-        if (strcmp(param[1], "direct") == 0) {
-            if(strcmp(chdir==-1){
-                printf("No se pudo cambiar el directorio");
-            
-            }else{
-                printf("%s", chdir(*param[]);)
             }
-
         }
+        else {//Imprime el directorio actual.
+            char *currentDir= getcwd(NULL,0);
+            printf("\nPWD==>%s",currentDir);
+
+        }        printf("\n");
+
+
     }
-    else {//Imprime el directorio actual.
-        char *currentDir= getcwd(NULL,0);
-        printf("\nPWD==>%s",currentDir);
 
-    }        printf("\n");
-
-
-}
 
 
