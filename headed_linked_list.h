@@ -1,43 +1,79 @@
-//
-// Created by eloys on 21/09/2022.
-//
-
-#ifndef SO_SHELL_HEADED_LINKED_LIST_H
-#define SO_SHELL_HEADED_LINKED_LIST_H
-
-#ifndef DYNAMIC_LIST_H
-#define DYNAMIC_LIST_H
-#define LNULL NULL
-
-#include <stdbool.h>
-#include "types.h"
-
 typedef struct tNode* tPosL;
-typedef struct tNode{
-    char* datos;
-    tPosL next;
+struct tNode{
+    char datos;
+    struct Node* next;
 }tNode;
-
+struct tNode* head;
 typedef tPosL tList;
 
-void createEmptyList(tList* L);
-bool isEmptyList(tList L);
-tPosL first(tList L);
-tPosL last(tList L);
-tPosL next(tPosL p, tList L);
+void createList(tList* L){
+    *L=LNULL;
+    head=&L;
+}
 
-tPosL previous ( tPosL p, tList L);
-
-bool insertItem(char* d, tPosL p, tList *L);
-
-void deleteAtPosition (tPosL p, tList *L);
-
-char getItem( tPosL p, tList L);
-tPosL findItem (char* d, tList L);
+bool createNode( tPosL* p){
+    *p= malloc(sizeof(**p));
+    return *p!=LNULL;
+}
 
 
 
+char getChar( tPosL p, tList L){
+    return p->datos; //RETORNA LvOS DATOS DE LA POSICIÓN QUE SE INTRODUCE.
+}
 
-#endif //SO_SHELL_HEADED_LINKED_LIST_H
+void printList(tList L){
+    tPosL p;
+    for(p=L;p->next!=NULL;p=p->next){
+        printf("%s",getChar(p,L));
+    }
+}
 
+tPosL findPosition(tList L, char d) {
+    tPosL p;
+    p = L;
+    for (p = L; (p != NULL) && strcmp(p->datos, d)<0; p = p->next);
+    return p;
+
+}
+
+bool insertItem(char d, tList *L) {
+    tPosL p, q, r; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
+    if (!createNode(&q)) { //SI NO HAY NODO SE RETORNA FALSO.
+        return false;
+    } else {
+        q->datos = d;
+        q->next = LNULL;
+        if (*L == LNULL) { //LISTA VACÍA.
+            *L = q;
+        } else if (strcmp(d, (*L)->datos)<0) { //INSERTAR EN EL FINAL.
+            q->next = *L;
+            *L = q;
+        } else {
+            p = findPosition(*L, d);
+            if (p == LNULL) {
+                for (r = *L; r->next != LNULL; r = r->next);
+                r->next = q;
+            } else {
+                q->datos = p->datos;
+                p->datos = d;
+                q->next = p->next;
+                p->next = q;
+            }
+        }
+        return true;
+    }
+}
+
+
+void printn(char param,tList L){
+    int n;
+    tPosL p;
+    n = param - '0'; // teoricamente transforma el char en un int lo busque en internet
+    p=L;
+    for(int i=0;i<n;i++){
+        p=p->next;
+    }
+    printf("%s", getChar(p,L));
+}
 
