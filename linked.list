@@ -1,108 +1,38 @@
-//
-// Created by eloys on 21/09/2022.
-//
+#ifndef SO_SHELL_HEADED_LINKED_LIST_H
+#define SO_SHELL_HEADED_LINKED_LIST_H
 
-#include "headed_linked_list.h"
-#include <stdlib.h>
-#include <string.h>
+#ifndef DYNAMIC_LIST_H
+#define DYNAMIC_LIST_H
+#define LNULL NULL
 
-void createEmptyList(tList* L){
-    *L= NULL;
-}
+#include <stdbool.h>
+#include "types.h"
 
-bool isEmptyList(tList L) {
-    return (L==LNULL);
+typedef struct tNode* tPosL;
+typedef struct tNode{
+    char* datos;
+    tPosL next;
+}tNode;
 
-}
+typedef tPosL tList;
 
-tPosL first(tList L){
-    return L; // RETORNAMOS EL PRIMER NODO DE LA LISTA.
-}
+void createEmptyList(tList* L);
+bool isEmptyList(tList L);
+tPosL first(tList L);
+tPosL last(tList L);
+tPosL next(tPosL p, tList L);
 
-tPosL last(tList L){
-    tPosL p; //CREAMOS UNA VARIABLE P PARA RECORRER LAS LISTAS HASTA EL ÚLTIMO DATO.
-    for(p=L;p->next!=LNULL; p=p->next);
-    return p;
-}
+tPosL previous ( tPosL p, tList L);
 
-tPosL next(tPosL p, tList L){
-    return p->next;
-}
+bool insertItem(char* d, tPosL p, tList *L);
 
-tPosL previous ( tPosL p, tList L){
-    tPosL q; //VARIABLE Q PARA RECORRER LAS LISTAS HASTA LA ANTERIOR A LA INTRODUCIDA.
-    if(p==L){
-        return LNULL; //NULL SI NO HAY VALOR ANTERIOR.
-    }else {
-        for (q = L; q->next != p; q = q->next);
-        return q;
-    }
-}
-//CREAMOS UN NODO PARA PODER INTERACTUAR EN LA LISTA QUE NOS DEN, INTRODUCIÉNDOLO COMO INCIO, FINAL O EN EL MEDIO.
-bool createNode( tPosL* p){
-    *p= malloc(sizeof(**p));
-    return *p!=LNULL;
-}
+void deleteAtPosition (tPosL p, tList *L);
 
-bool insertItem(char* d, tPosL p, tList *L) {
-    tPosL q, r; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
-    if (!createNode(&q)) { //SI NO HAY NODO SE RETORNA FALSO.
-        return false;
-    } else {
-        q->datos = d;
-        q->next = LNULL;
-        if (*L == LNULL) { //LISTA VACÍA.
-            *L = q;
-        } else if (p == LNULL) { //INSERTAR EN EL FINAL.
-            r = *L;
-            while (r->next != LNULL) {
-                r = r->next;
-            }
-            r->next = q;
-
-        } else if (p == *L) { //INSERTAR EN EL PRINCIPIO.
-            q->next = *L;
-            *L = q;
-        } else { //INSERTAR ENTRE MEDIAS.
-            q->datos = p->datos;
-            p->datos = d;
-            q->next = p->next;
-            p->next = q;
-        }
-        return true;
-    }
-}
+char getItem( tPosL p, tList L);
+tPosL findItem (char* d, tList L);
 
 
-void deleteAtPosition (tPosL p, tList *L) {
-    tPosL q;
-    if (p == *L) { //ELIMINAR ELEMENTO DEL INICIO.
-        *L = (*L)->next;
-    } else if (p->next == LNULL) { //ELIMINAR ELEMENTO DEL FINAL.
-        for (q = *L; q->next != p; q = q->next);
-        q->next = LNULL;
-
-    } else { //ELIMINAR ELEMENTO DEL MEDIO.
-        q = p->next;
-        p->datos = q->datos;
-        p->next = q->next;
-        p = q;
-    }
-    free(p);
-
-}
-
-tItemL getItem( tPosL p, tList L){
-    return p->datos; //RETORNA LOS DATOS DE LA POSICIÓN QUE SE INTRODUCE.
-}
 
 
-tPosL findItem (tProductId d, tList L) {
-    tPosL p;
-    p = LNULL;
-    //SE RECORRE CON UN BUCLE DESDE EL PRIMER NODO HASTA EL ÚLTIMO HASTA DAR CON EL ELEMENTO QUE SEA IGUAL AL PEDIDO.
-    for (p = L; (p != NULL) && (strcmp(p->datos.productId, d))!=0; p = p->next);
+#endif //SO_SHELL_HEADED_LINKED_LIST_H
 
-    return p;
-
-}
