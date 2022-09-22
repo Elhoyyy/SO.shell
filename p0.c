@@ -5,7 +5,7 @@
 #include <sys/syscall.h>
 #include <sys/utsname.h>
 #include <time.h>
-#include"headed_linked_list.c"
+#include"list.c"
 #define N 48
 
 void leerEntrada(char cadena);
@@ -34,6 +34,7 @@ int main (){
     while ( !acabar){
         imprimirPrompt();
         leerEntrada(*cadena);
+        insertItem(cadena,Lista);
         int ntrozos= TrocearCadena(cadena, trozos);
         ProcesarEntrada(trozos, ntrozos);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
@@ -239,5 +240,19 @@ void doayuda(char*param[]) {
 
     }
 
+void doHist(char* param[],tList Lista){
+    if(param!=0){
+        if(strcmp(param[1],"-c")==0){
+            tPosL k;
+            for(k=Lista;k->next!=NULL;k=k->next){
+            deleteAtPosition(k,&Lista);
+        }
+        }else{
+            printn(param[1],Lista);
+        }
 
+    }else{
+        printList(Lista);
+    }
+    }
 
