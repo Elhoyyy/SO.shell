@@ -11,32 +11,32 @@
 
 void leerEntrada(char cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
-int ProcesarEntrada(char *trozos[], int ntrozos);
+void ProcesarEntrada(char *trozos[], int ntrozos);
 void imprimirPrompt();
 //ESTO SERÍA EN OTRO MAIN.C
-int doautores(char *param[]);
-int dopid(char *param[]);
-int dohist(char *param[]);
-int docarpeta(char *param[]);
+void doautores(char *param[]);
+void dopid(char *param[]);
+void dohist(char *param[]);
+void docarpeta(char *param[]);
 int docomando(char *param[]);
-int dofecha(char *param[]);
-int doexit(char *param[]);
-int dosalir(char *param[]);
-int dobye(char *param[]);
-int doinfosis(char *param[]);
-int doayuda(char *param[]);
+void dofecha(char *param[]);
+void doexit(char *param[]);
+void dosalir(char *param[]);
+void dobye(char *param[]);
+void doinfosis(char *param[]);
+void doayuda(char *param[]);
 
 int main (){
-    int salir=0;
+    int acabar=0;
     char cadena[N] ;
     char *trozos[N/2];
 
 
-    while ( salir!= 1){
+    while ( !acabar){
         imprimirPrompt();
         leerEntrada(*cadena);
         int ntrozos= TrocearCadena(cadena, trozos);
-        salir=ProcesarEntrada(trozos, ntrozos);
+        ProcesarEntrada(trozos, ntrozos);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
     }
 }
@@ -61,53 +61,53 @@ void imprimirPrompt(){
     printf("$ ");
 }
 
-int ProcesarEntrada(char * trozos[], int ntrozos){
+void ProcesarEntrada(char * trozos[], int ntrozos){
     char **param=trozos;
     int i=0;
-    if (param[0]==NULL){return 0;}
+    if (param[0]==NULL){exit(0);}
     if(strcmp(param[0], "autores")==0){
-        return doautores(param);
+         doautores(param);
     }else if(strcmp(param[0], "pid")==0){
-        return dopid(param);
+         dopid(param);
     }else if(strcmp(param[0], "carpeta")==0){
-        return docarpeta(param);
+         docarpeta(param);
     }else if(strcmp(param[0], "fecha")==0){
-        return dofecha(param);
+         dofecha(param);
     }else if(strcmp(param[0], "hist")==0){
-        return dohist(param);
+         //dohist(param);
     }else if(strcmp(param[0], "comando")==0){
-        return docomando(param);
+         //docomando(param,);
     }else if(strcmp(param[0], "salir")==0){
-        return dosalir(param);
+         dosalir(param);
 
     }else if(strcmp(param[0], "exit")==0){
-        return doexit(param);
+         doexit(param);
 
     }else if(strcmp(param[0], "bye")==0){
-        return dobye(param);
+         dobye(param);
 
     }else if(strcmp(param[0], "infosis")==0){
-        return doinfosis(param);
+         doinfosis(param);
 
     }else if(strcmp(param[0], "ayuda")==0){
-    return doayuda(param);
+     doayuda(param);
 
     }else {
         printf("\nEste comando no existe\n");
     }
-    return 0;
+
 }
 
-int doexit(char *param[]) {
-    return -1;
+void doexit(char *param[]) {
+    exit(0)
+;}
+void dobye(char *param[]) {
+    exit(0);
 }
-int dobye(char *param[]) {
-    return -1;
+void dosalir(char *param[]){
+    exit(0);
 }
-int dosalir(char *param[]){
-    return -1;
-}
-int doautores(char *param[]) {
+void doautores(char *param[]) {
     if (param != 0) {
         if (strcmp(param[1], "-l") == 0) { //Imprime el login.
             printf("eloy.sastre@udc.es\n");
@@ -123,9 +123,8 @@ int doautores(char *param[]) {
         }
     printf("\n");
 
-    return 0;
 }
-int doFecha(char *param[]) {
+void doFecha(char *param[]) {
     time_t tiempoahora;
     time(&tiempoahora);
     struct tm *t=localtime(&tiempoahora);
@@ -144,16 +143,22 @@ int doFecha(char *param[]) {
     }
     printf("\n");
 
-    return 0;
 }
-int doinfosis(char *param[]){
+
+void doinfosis(char *param[]){
     struct utsname info;
     if(!uname(&info)){
         printf("%s(%s), OS: %s-%s-%s \n", info.nodename,info.machine, info.sysname, info.releasem, info.version);
     }
 }
+void xDDD(char *param[]){
 
-int doayuda(char*param[]){
+}
+void xDDD2(char *param []){
+
+}
+
+void doayuda(char*param[],){
     if(**param!=0){
         if(strcmp(param[1],"cmd")==0){
 
@@ -170,7 +175,7 @@ int doayuda(char*param[]){
     }
 }
 
-int dopid(char *param[]){
+void dopid(char *param[]){
     int pid,p_pid;
     pid=getpid();
     p_pid=getppid();
@@ -186,11 +191,10 @@ int dopid(char *param[]){
     }
     printf("\n");
 
-    return 0;
 
 }
 
-int docarpeta (char *param[]){
+void docarpeta (char *param[]){
     char *currentDir [1024];
     if (param != 0) {
         if (strcmp(param[1], "direct") == 0) {
@@ -203,7 +207,12 @@ int docarpeta (char *param[]){
 
     }        printf("\n");
 
-    return 0;
+
 }
+/*int hist(**param, ){
+}
+
+int comando(**param, ){}
+/*
 
 
