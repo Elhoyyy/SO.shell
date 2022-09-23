@@ -1,9 +1,13 @@
+
+#include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/utsname.h>
+#include <sys/syscall.h>
 #include <time.h>
-#include"list.c"
+
 #define N 48
 
 void leerEntrada(char cadena);
@@ -101,7 +105,7 @@ int ProcesarEntrada(char * trozos[]){
 
 int doexit() {
     return 0;
-            ;}
+    ;}
 int dobye() {
     return 0;
 }
@@ -150,7 +154,7 @@ int doFecha(char *param[]) {
 int doinfosis(char *param[]){
     struct utsname info;
     if(!uname(&info)){
-        printf("%s(%s), OS: %s-%s-%s \n", info.nodename,info.machine, info.sysname, info.releasem, info.version);
+        printf("%s(%s), OS: %s-%s-%s \n", info.nodename,info.machine, info.sysname, info.release, info.version);
     }
     return 1;
 }
@@ -190,7 +194,7 @@ char * infoparametros(char * cmd){
     int i;
     for (i=0; i<11; i++)
         if (strcmp(V[i].cmd, cmd) ==0)
-                break;
+            break;
     if (i==11) return "";
     return V[i].msg;
 
@@ -201,13 +205,13 @@ int doayuda(char *param[]) {
     if (param[1]!= NULL) {
         infoparametros(param[1]);
 
-        } else {
+    } else {
         printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda");
 
         printf("\n");
-        }
-    return 1;
     }
+    return 1;
+}
 
 int dopid(char *param[]){
     int pid,p_pid;
@@ -231,26 +235,25 @@ int dopid(char *param[]){
 
 int docarpeta (char *param[]){
     if (param[1] != NULL) {
-        if (strcmp(param[1], "direct") == 0) {
             if((chdir(*param)==-1)){
-                printf("No se pudo cambiar el directorio");
+                perror("No se pudo cambiar el directorio");
 
-            }else{
-                printf("%s", chdir(*param[]);)
             }
 
-        }
     }
     else {//Imprime el directorio actual.
         char *currentDir= getcwd(NULL,0);
         printf("\nPWD==>%s",currentDir);
+        free(currentDir);
 
     }        printf("\n");
 
     return 1;
 }
 
-int doHist(char* param[],tList Lista){
+int doHist(char* param[],tList Lista){return 0;}
+/*
+int doHist2(char* param[],tList Lista){
     if(param[1]!=NULL){
         if(strcmp(param[1],"-c")==0){
             tPosL k;
@@ -266,7 +269,10 @@ int doHist(char* param[],tList Lista){
     }
     return 1;
 }
-int doComandoN(char* param[],tList L){
+ */
+int doComandoN(char* param[],tList L){ return 0;}
+/*
+int doComandoN2(char* param[],tList L){
     tPosL p;
     char copy[N];
     char *trozoscopy[N/2];
@@ -280,6 +286,4 @@ int doComandoN(char* param[],tList L){
     int ntrozos= TrocearCadena(copy, trozoscopy);
     ProcesarEntrada(trozoscopy);
     return 1;
-}
-
-
+}*
