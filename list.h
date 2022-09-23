@@ -12,7 +12,7 @@
 typedef struct tNode* tPosL;
 
 typedef struct tNode{
-    char datos;
+    char* datos;
     tPosL next;
 }tNode;
 
