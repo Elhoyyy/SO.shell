@@ -68,8 +68,8 @@ void printn(char* param[],tList L){
     p=L;
     for(int i=0;i<n;i++){
         p=p->next;
-    }
     printf("%c", getChar(p,L));
+       }
 }
 
 void deleteAtPosition (tPosL p, tList *L) {
