@@ -257,4 +257,18 @@ void doHist(char* param[],tList Lista){
         printList(Lista);
     }
     }
+void doComandoN(char* param[],tList L){
+    tPosL p;
+    char copy[N];
+    char *trozoscopy[N/2];
+    long n= strtol(*param,NULL,10); // teoricamente transforma el char en un int lo busque en internet
+    p=L;
+    for(int i=0;i<n;i++){
+        p=p->next;
+    }
+    strcpy(copy, getChar(p, L));
+    printf("%s",copy);
+    int ntrozos= TrocearCadena(copy, trozoscopy);
+    ProcesarEntrada(trozoscopy, ntrozos);
+}
 
