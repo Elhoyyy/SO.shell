@@ -1,5 +1,8 @@
+//
+// Created by danip on 22/09/2022.
+//
 
-#include "headed_linked_list.h"
+#include "list.h"
 void createList(tList* L){
     tPosL cabeceira;
     cabeceira=malloc(sizeof(**L));
@@ -15,7 +18,7 @@ bool createNode( tPosL* p){
 
 
 char* getChar( tPosL p, tList L){
-    return &p->datos; //RETORNA LvOS DATOS DE LA POSICIÓN QUE SE INTRODUCE.
+    return p->datos; //RETORNA LvOS DATOS DE LA POSICIÓN QUE SE INTRODUCE.
 }
 
 void printList(tList L){
@@ -26,12 +29,12 @@ void printList(tList L){
 }
 
 
-bool insertItem(char *d, tList L) {
-    tPosL p, q, r; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
+bool insertItem(char d, tList L) {
+    tPosL p, q; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
     if (!createNode(&q)) { //SI NO HAY NODO SE RETORNA FALSO.
         return false;
     } else {
-        q->datos = *d;
+        q->datos = &d;
         q->next = LNULL;
         if (L->next == LNULL) { //LISTA VACÍA.
             L->next = q;
@@ -46,8 +49,8 @@ bool insertItem(char *d, tList L) {
 
 void printn(char* param[],tList L){
     tPosL p;
-    long n= strtol(*param,NULL,10); // teoricamente transforma el char en un int lo busque en internet
-    p=L;
+    long n= strtol(*param,LNULL,10); // teoricamente transforma el char en un int lo busque en internet
+    p=L->next;
     for(int i=0;i<n;i++){
         p=p->next;
     printf("%s", getChar(p,L));
