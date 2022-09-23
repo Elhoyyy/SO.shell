@@ -5,7 +5,7 @@
 #include "list.h"
 void createList(tList* L){
     *L=LNULL;
-    head=&L;
+    head=*L ;
 }
 
 bool createNode( tPosL* p){
@@ -22,28 +22,27 @@ char getChar( tPosL p, tList L){
 void printList(tList L){
     tPosL p;
     for(p=L;p->next!=NULL;p=p->next){
-        printf("%s",getChar(p,L));
+        printf("%c",getChar(p,L));
     }
 }
 
-tPosL findPosition(tList L, char d) {
+tPosL findPosition(tList L, char* d) {
     tPosL p;
-    p = L;
-    for (p = L; (p != NULL) && strcmp(p->datos, d)<0; p = p->next);
+    for (p = L; (p != NULL) && strcmp(&p->datos, d)<0; p = p->next);
     return p;
 
 }
 
-bool insertItem(char d, tList *L) {
+bool insertItem(char* d, tList *L) {
     tPosL p, q, r; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
     if (!createNode(&q)) { //SI NO HAY NODO SE RETORNA FALSO.
         return false;
     } else {
-        q->datos = d;
+        q->datos = *d;
         q->next = LNULL;
         if (*L == LNULL) { //LISTA VACÍA.
             *L = q;
-        } else if (strcmp(d, (*L)->datos)<0) { //INSERTAR EN EL FINAL.
+        } else if (strcmp(*d, &((*L)->datos))<0) { //INSERTAR EN EL FINAL.
             q->next = *L;
             *L = q;
         } else {
@@ -53,7 +52,7 @@ bool insertItem(char d, tList *L) {
                 r->next = q;
             } else {
                 q->datos = p->datos;
-                p->datos = d;
+                p->datos = *d;
                 q->next = p->next;
                 p->next = q;
             }
@@ -64,14 +63,13 @@ bool insertItem(char d, tList *L) {
 
 
 void printn(char* param[],tList L){
-    int n;
     tPosL p;
-    n = param - '0'; // teoricamente transforma el char en un int lo busque en internet
+    long n= strtol(*param,NULL,10); // teoricamente transforma el char en un int lo busque en internet
     p=L;
     for(int i=0;i<n;i++){
         p=p->next;
     }
-    printf("%s", getChar(p,L));
+    printf("%c", getChar(p,L));
 }
 
 void deleteAtPosition (tPosL p, tList *L) {
