@@ -57,10 +57,10 @@ void printn(char* param[],tList L){
     }
 }
 
-void deleteAtPosition (tPosL p, tList *L) {
+void deleteAtPosition (tPosL p, tList L) {
     tPosL q;
      if (p->next == LNULL) { //ELIMINAR ELEMENTO DEL FINAL.
-        for (q = *L; q->next != p; q = q->next);
+        for (q = L->next; q->next != p; q = q->next);
         q->next = LNULL;
 
     } else { //ELIMINAR ELEMENTO DEL MEDIO.
