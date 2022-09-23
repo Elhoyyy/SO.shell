@@ -1,5 +1,5 @@
 
-#include "headed_linked_list.h"
+#include "list.c"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,14 +12,13 @@
 
 void leerEntrada(char *cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
-int ProcesarEntrada(char *trozos[]);
+int ProcesarEntrada(char *trozos[],tList Lista);
 void imprimirPrompt();
 //ESTO SERÍA EN OTRO MAIN.C
 int doautores(char *param[]);
 int dopid(char *param[]);
-int dohist(char *param[]);
+int dohist(char *param[],tList Lista);
 int docarpeta(char *param[]);
-int docomando(char *param[]);
 int dofecha(char *param[]);
 int doexit();
 int dosalir();
@@ -27,7 +26,7 @@ int dobye();
 int doinfosis(char *param[]);
 int doayuda(char *param[]);
 char * infoparametros(char *cmd);
-
+char* getListaComando(int acabar,tList LIsta);
 
 int main(){
     int acabar=0;
@@ -38,33 +37,26 @@ int main(){
 
 
     while ( acabar!=-1 ){
-        
+
         imprimirPrompt();
-        
+
         if (acabar >0) {
-        	char *cmd = getListaComando(acabar,Lista);
-        	strcpy(cadena,cmd);
+            char *cmd = getListaComando(acabar,Lista);
+            strcpy(cadena,cmd);
         }
-       
-	leerEntrada(cadena);
-        
-        insertItem(cadena,Lista);
-        int ntrozos= TrocearCadena(cadena, trozos);
-        acabar=ProcesarEntrada(trozos, Lista);
+
+        leerEntrada(cadena);
+        insertItem(*cadena,Lista);
+        TrocearCadena(cadena, trozos);
+        acabar=ProcesarEntrada(trozos,Lista);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
     }
-    
+
     //destruirlista ==> free(Lista);
     free (Lista);
 }
 
-char * getListaComando(int acabar, tList Lista){
-	tPosL p= Lista ->next;
-	for(int i=0; i< acabar; i++){
-		p=p->next;
-		}
-	return getChar(p, Lista);
-}
+
 
 
 
@@ -89,7 +81,7 @@ void imprimirPrompt(){
     printf("$ ");
 }
 
-int ProcesarEntrada(char * trozos[]){
+int ProcesarEntrada(char * trozos[],tList Lista){
     char **param=trozos;
     int i=0;
     if (param[0]==NULL){return i;}
@@ -102,12 +94,12 @@ int ProcesarEntrada(char * trozos[]){
     }else if(strcmp(param[0], "fecha")==0){
         i=dofecha(param);
     }else if(strcmp(param[0], "hist")==0){
-        i=dohist(param);
+        i=dohist(param,Lista);
     }else if(strcmp(param[0], "comando")==0){
-        i=docomando(param);
+        long n= strtol(param[1],NULL,10);
+        i=n;
     }else if(strcmp(param[0], "salir")==0){
         i=dosalir();
-
     }else if(strcmp(param[0], "exit")==0){
         i=doexit();
 
@@ -184,10 +176,10 @@ int doinfosis(char *param[]){
 
 char * infoparametros(char * cmd){
 
-struct t_ayuda{
-    char* cmd;
-    char* msg;
-};
+    struct t_ayuda{
+        char* cmd;
+        char* msg;
+    };
     static struct t_ayuda V[11];
 
     V[0].cmd="ayuda";
@@ -216,22 +208,18 @@ struct t_ayuda{
 
 
     int i;
-    for (i=0; i<11; i++){
+    for (i=0; i<11; i++)
         if (strcmp(V[i].cmd, cmd) ==0)
             return V[i].msg;
-            }
-            
-            if(i==11){
-
+        else
             return "";
-            }
-}
 
+}
 
 int doayuda(char *param[]) {
 
     if (param[1]!= NULL) {
-        printf("%s\n",infoparametros(param[1]));
+        printf("%s",infoparametros(param[1]));
 
     } else {
         printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda");
@@ -263,10 +251,10 @@ int dopid(char *param[]){
 
 int docarpeta (char *param[]){
     if (param[1] != NULL) {
-            if((chdir(param[1])==-1)){
-                perror("No se pudo cambiar el directorio");
+        if((chdir(param[1])==-1)){
+            perror("No se pudo cambiar el directorio");
 
-            }
+        }
 
     }
     else {//Imprime el directorio actual.
@@ -279,19 +267,30 @@ int docarpeta (char *param[]){
     return 1;
 }
 
-int dohist(char* param[]){
- if(param[1]!=NULL){
+
+
+
+int dohist(char* param[],tList Lista){
+    if(param[1]!=NULL){
         if(strcmp(param[1],"-c")==0){
             tPosL k;
-            for(k=Lista;k->next!=NULL;k=k->next){
-                deleteAtPosition(k,&Lista);
+            for(k=Lista->next;k->next!=NULL;k=k->next){
+                deleteAtPosition(k,Lista);
             }
         }else{
-            printn(param[1],Lista);
+            printn(&param[1],Lista);
         }
     }else{
         printList(Lista);
     }
     return 1;
+}
+
+char* getListaComando(int acabar,tList Lista){
+    tPosL p=Lista->next;
+    for(int i=0;i<acabar;i++){
+        p=p->next;
+    }
+    return getChar(p,Lista);
 }
 
