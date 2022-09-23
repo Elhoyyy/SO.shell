@@ -8,7 +8,7 @@
 
 void leerEntrada(char cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
-int ProcesarEntrada(char *trozos[], int ntrozos);
+int ProcesarEntrada(char *trozos[]);
 void imprimirPrompt();
 //ESTO SERÍA EN OTRO MAIN.C
 int doautores(char *param[]);
@@ -22,7 +22,6 @@ int dosalir();
 int dobye();
 int doinfosis(char *param[]);
 int doayuda(char *param[]);
-void parametros(char *param[]);
 char * infoparametros(char *cmd);
 
 int main (){
@@ -38,7 +37,7 @@ int main (){
         leerEntrada(*cadena);
         insertItem(cadena,&Lista);
         int ntrozos= TrocearCadena(cadena, trozos);
-        acabar=ProcesarEntrada(trozos, ntrozos);
+        acabar=ProcesarEntrada(trozos);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
     }
 }
@@ -63,10 +62,10 @@ void imprimirPrompt(){
     printf("$ ");
 }
 
-int ProcesarEntrada(char * trozos[], int ntrozos){
+int ProcesarEntrada(char * trozos[]){
     char **param=trozos;
     int i=0;
-    if (param[0]==NULL){exit(0);}
+    if (param[0]==NULL){return i;}
     if(strcmp(param[0], "autores")==0){
         i=doautores(param);
     }else if(strcmp(param[0], "pid")==0){
@@ -97,6 +96,7 @@ int ProcesarEntrada(char * trozos[], int ntrozos){
     }else {
         printf("\nEste comando no existe\n");
     }
+    return i;
 }
 
 int doexit() {
@@ -109,7 +109,7 @@ int dosalir(){
     return 0;
 }
 int doautores(char *param[]) {
-    if (param[1] != 0) {
+    if (param[1] != NULL) {
         if (strcmp(param[1], "-l") == 0) { //Imprime el login.
             printf("eloy.sastre@udc.es\n");
             printf("daniel.pmosquera@udc.es\n");
@@ -132,7 +132,7 @@ int doFecha(char *param[]) {
     //Empieza a contar los meses desde 0, por eso le sumo 1, y los años desde 1900.
     int day=t->tm_mday, month=t->tm_mon+1, year= t->tm_year+1900, hour=t->tm_hour, min=t->tm_min, sec=t->tm_sec;
 
-    if (param != 0) {
+    if (param[1] != NULL) {
         if (strcmp(param[1], "-d") == 0) { //Imprime formato DD/MM//AA
             printf("%d/%d/%d\n", day, month, year); }
         else if (strcmp(param[1], "-h") == 0) { //Imprime formato hh:mm:ss
@@ -161,7 +161,7 @@ struct t_ayuda{
 };
 char * infoparametros(char * cmd){
     static struct t_ayuda V[11];
-    
+
     V[0].cmd="ayuda";
     V[1].cmd="bye";
     V[2].cmd="exit";
@@ -169,11 +169,11 @@ char * infoparametros(char * cmd){
     V[4].cmd="infosis ";
     V[5].cmd="comando ";
     V[6].cmd="hist";
-    V[7].cmd="autores"; 
+    V[7].cmd="autores";
     V[8].cmd="fecha";
     V[9].cmd="pid ";
     V[10].cmd="carpeta";
-    
+
     V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos";
     V[1].msg="bye 	Termina la ejecucion del shell";
     V[2].msg="exit";
@@ -185,19 +185,19 @@ char * infoparametros(char * cmd){
     V[8].msg="fecha [-d|.h	Muestra la fecha y o la hora actual";
     V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre";
     V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell";
-    
-    
+
+
     int i;
     for (i=0; i<11; i++)
         if (strcmp(V[i].cmd, cmd) ==0)
                 break;
-    if (i==11) return "";    
+    if (i==11) return "";
     return V[i].msg;
-    
+
 }
 
-int doayuda(char*param[]) {
- 
+int doayuda(char *param[]) {
+
     if (param[1]!= NULL) {
         infoparametros(param[1]);
 
@@ -214,7 +214,7 @@ int dopid(char *param[]){
     pid=getpid();
     p_pid=getppid();
 
-    if (param != 0) {
+    if (param[1] != NULL) {
         if (strcmp(param[1], "-p") == 0) { //proceso padre
             printf("Proceso padre del shell: %d\n", p_pid);
         }
@@ -230,7 +230,7 @@ int dopid(char *param[]){
 }
 
 int docarpeta (char *param[]){
-    if (param != 0) {
+    if (param[1] != NULL) {
         if (strcmp(param[1], "direct") == 0) {
             if((chdir(*param)==-1)){
                 printf("No se pudo cambiar el directorio");
@@ -251,7 +251,7 @@ int docarpeta (char *param[]){
 }
 
 int doHist(char* param[],tList Lista){
-    if(param!=0){
+    if(param[1]!=NULL){
         if(strcmp(param[1],"-c")==0){
             tPosL k;
             for(k=Lista;k->next!=NULL;k=k->next){
@@ -278,7 +278,8 @@ int doComandoN(char* param[],tList L){
     strcpy(copy, getChar(p, L));
     printf("%s",copy);
     int ntrozos= TrocearCadena(copy, trozoscopy);
-    ProcesarEntrada(trozoscopy, ntrozos);
+    ProcesarEntrada(trozoscopy);
     return 1;
 }
+
 
