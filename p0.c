@@ -79,9 +79,9 @@ int ProcesarEntrada(char * trozos[]){
     }else if(strcmp(param[0], "fecha")==0){
         i=dofecha(param);
     }else if(strcmp(param[0], "hist")==0){
-        //dohist(param);
+        dohist(param);
     }else if(strcmp(param[0], "comando")==0){
-        //docomando(param,);
+        docomando(param,);
     }else if(strcmp(param[0], "salir")==0){
         i=dosalir();
 
@@ -129,7 +129,7 @@ int doautores(char *param[]) {
     printf("\n");
     return 1;
 }
-int doFecha(char *param[]) {
+int dofecha(char *param[]) {
     time_t tiempoahora;
     time(&tiempoahora);
     struct tm *t=localtime(&tiempoahora);
@@ -270,9 +270,9 @@ int doHist2(char* param[],tList Lista){
     return 1;
 }
  */
-int doComandoN(char* param[],tList L){ return 0;}
+int docomando(char* param[],tList L){ return 0;}
 /*
-int doComandoN2(char* param[],tList L){
+int docomando2(char* param[],tList L){
     tPosL p;
     char copy[N];
     char *trozoscopy[N/2];
