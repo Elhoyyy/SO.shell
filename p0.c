@@ -1,4 +1,5 @@
 
+
 #include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
@@ -10,7 +11,7 @@
 
 #define N 48
 
-void leerEntrada(char cadena);
+void leerEntrada(char *cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
 int ProcesarEntrada(char *trozos[]);
 void imprimirPrompt();
@@ -28,7 +29,8 @@ int doinfosis(char *param[]);
 int doayuda(char *param[]);
 char * infoparametros(char *cmd);
 
-int main (){
+
+int main(){
     int acabar=0;
     char cadena[N] ;
     char *trozos[N/2];
@@ -36,17 +38,33 @@ int main (){
     createList(&Lista);
 
 
-    while ( !acabar){
+    while ( acabar!=-1 ){
+        
         imprimirPrompt();
-        leerEntrada(*cadena);
-        insertItem(cadena,&Lista);
+        
+        if (acabar >0) {
+        	//char *cmd = getListaComando(acabar,Lista);
+        	//strcpy(cadena,cmd);
+        }
+       
+	leerEntrada(cadena);
+        
+        insertItem(cadena,Lista);
         int ntrozos= TrocearCadena(cadena, trozos);
         acabar=ProcesarEntrada(trozos);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
     }
+    
+    //destruirlista ==> free(Lista);
+    free (Lista);
 }
 
-void leerEntrada(char cadena){
+
+
+
+
+
+void leerEntrada(char *cadena){
 
     fgets(cadena, N, stdin );
     // return x;
@@ -79,9 +97,9 @@ int ProcesarEntrada(char * trozos[]){
     }else if(strcmp(param[0], "fecha")==0){
         i=dofecha(param);
     }else if(strcmp(param[0], "hist")==0){
-        dohist(param);
+        i=dohist(param);
     }else if(strcmp(param[0], "comando")==0){
-        docomando(param,);
+        i=docomando(param);
     }else if(strcmp(param[0], "salir")==0){
         i=dosalir();
 
@@ -104,13 +122,13 @@ int ProcesarEntrada(char * trozos[]){
 }
 
 int doexit() {
-    return 0;
+    return -1;
     ;}
 int dobye() {
-    return 0;
+    return -1;
 }
 int dosalir(){
-    return 0;
+    return -1;
 }
 int doautores(char *param[]) {
     if (param[1] != NULL) {
@@ -159,11 +177,12 @@ int doinfosis(char *param[]){
     return 1;
 }
 
+char * infoparametros(char * cmd){
+
 struct t_ayuda{
     char* cmd;
     char* msg;
 };
-char * infoparametros(char * cmd){
     static struct t_ayuda V[11];
 
     V[0].cmd="ayuda";
@@ -194,9 +213,9 @@ char * infoparametros(char * cmd){
     int i;
     for (i=0; i<11; i++)
         if (strcmp(V[i].cmd, cmd) ==0)
-            break;
-    if (i==11) return "";
-    return V[i].msg;
+            return V[i].msg;
+            else 
+            return "";
 
 }
 
@@ -235,7 +254,7 @@ int dopid(char *param[]){
 
 int docarpeta (char *param[]){
     if (param[1] != NULL) {
-            if((chdir(*param)==-1)){
+            if((chdir(param[1])==-1)){
                 perror("No se pudo cambiar el directorio");
 
             }
@@ -251,9 +270,10 @@ int docarpeta (char *param[]){
     return 1;
 }
 
-int doHist(char* param[],tList Lista){return 0;}
+
+int dohist(char* param[],tList Lista){return 0;}
 /*
-int doHist2(char* param[],tList Lista){
+int dohist2(char* param[],tList Lista){
     if(param[1]!=NULL){
         if(strcmp(param[1],"-c")==0){
             tPosL k;
