@@ -1,6 +1,4 @@
 //
-// Created by danip on 22/09/2022.
-//
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
@@ -12,7 +10,6 @@
 #endif //P0_LIST_H
 
 typedef struct tNode* tPosL;
-struct tNode* head;
 
 typedef struct tNode{
     char datos;
@@ -23,9 +20,8 @@ typedef tPosL tList;
 
 void createList(tList* L);
 bool createNode(tPosL* p);
-char getChar(tPosL p,tList L);
+char* getChar(tPosL p,tList L);
 void printList(tList L);
-tPosL findPosition(tList L,char d);
-bool insertItem(char d,tList *L);
+bool insertItem(char *d,tList L);
 void printn(char* param[],tList L);
 void deleteAtPosition (tPosL p, tList *L);
