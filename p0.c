@@ -2,28 +2,28 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/syscall.h>
-#include <sys/utsname.h>
 #include <time.h>
 #include"list.c"
 #define N 48
 
 void leerEntrada(char cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
-void ProcesarEntrada(char *trozos[], int ntrozos);
+int ProcesarEntrada(char *trozos[], int ntrozos);
 void imprimirPrompt();
 //ESTO SERÍA EN OTRO MAIN.C
-void doautores(char *param[]);
-void dopid(char *param[]);
-void dohist(char *param[]);
-void docarpeta(char *param[]);
+int doautores(char *param[]);
+int dopid(char *param[]);
+int dohist(char *param[]);
+int docarpeta(char *param[]);
 int docomando(char *param[]);
-void dofecha(char *param[]);
-void doexit(char *param[]);
-void dosalir(char *param[]);
-void dobye(char *param[]);
-void doinfosis(char *param[]);
-void doayuda(char *param[]);
+int dofecha(char *param[]);
+int doexit();
+int dosalir();
+int dobye();
+int doinfosis(char *param[]);
+int doayuda(char *param[]);
+void parametros(char *param[]);
+char * infoparametros(char *cmd);
 
 int main (){
     int acabar=0;
@@ -38,14 +38,14 @@ int main (){
         leerEntrada(*cadena);
         insertItem(cadena,&Lista);
         int ntrozos= TrocearCadena(cadena, trozos);
-        ProcesarEntrada(trozos, ntrozos);
+        acabar=ProcesarEntrada(trozos, ntrozos);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
     }
 }
 
 void leerEntrada(char cadena){
 
-    fgets(&cadena, N, stdin );
+    fgets(cadena, N, stdin );
     // return x;
 }
 
@@ -63,54 +63,53 @@ void imprimirPrompt(){
     printf("$ ");
 }
 
-void ProcesarEntrada(char * trozos[], int ntrozos){
+int ProcesarEntrada(char * trozos[], int ntrozos){
     char **param=trozos;
     int i=0;
     if (param[0]==NULL){exit(0);}
     if(strcmp(param[0], "autores")==0){
-        doautores(param);
+        i=doautores(param);
     }else if(strcmp(param[0], "pid")==0){
-        dopid(param);
+        i=dopid(param);
     }else if(strcmp(param[0], "carpeta")==0){
-        docarpeta(param);
+        i=docarpeta(param);
     }else if(strcmp(param[0], "fecha")==0){
-        dofecha(param);
+        i=dofecha(param);
     }else if(strcmp(param[0], "hist")==0){
         //dohist(param);
     }else if(strcmp(param[0], "comando")==0){
         //docomando(param,);
     }else if(strcmp(param[0], "salir")==0){
-        dosalir(param);
+        i=dosalir();
 
     }else if(strcmp(param[0], "exit")==0){
-        doexit(param);
+        i=doexit();
 
     }else if(strcmp(param[0], "bye")==0){
-        dobye(param);
+        i=dobye();
 
     }else if(strcmp(param[0], "infosis")==0){
-        doinfosis(param);
+        i=doinfosis(param);
 
     }else if(strcmp(param[0], "ayuda")==0){
-        doayuda(param);
+        i=doayuda(param);
 
     }else {
         printf("\nEste comando no existe\n");
     }
-
 }
 
-void doexit(char *param[]) {
-    exit(0)
+int doexit() {
+    return 0;
             ;}
-void dobye(char *param[]) {
-    exit(0);
+int dobye() {
+    return 0;
 }
-void dosalir(char *param[]){
-    exit(0);
+int dosalir(){
+    return 0;
 }
-void doautores(char *param[]) {
-    if (param != 0) {
+int doautores(char *param[]) {
+    if (param[1] != 0) {
         if (strcmp(param[1], "-l") == 0) { //Imprime el login.
             printf("eloy.sastre@udc.es\n");
             printf("daniel.pmosquera@udc.es\n");
@@ -124,9 +123,9 @@ void doautores(char *param[]) {
         printf("Daniel Pérez Mosquera: daniel.pmosquera@udc.es\n");
     }
     printf("\n");
-
+    return 1;
 }
-void doFecha(char *param[]) {
+int doFecha(char *param[]) {
     time_t tiempoahora;
     time(&tiempoahora);
     struct tm *t=localtime(&tiempoahora);
@@ -144,111 +143,120 @@ void doFecha(char *param[]) {
         printf("%d:%d:%d\n", hour,min,sec);
     }
     printf("\n");
+    return 1;
 
 }
 
-void doinfosis(char *param[]){
+int doinfosis(char *param[]){
     struct utsname info;
     if(!uname(&info)){
         printf("%s(%s), OS: %s-%s-%s \n", info.nodename,info.machine, info.sysname, info.releasem, info.version);
     }
-}
-void parametros(char *param[]){
-    *param[0]="ayuda";
-    *param[1]="bye";
-    *param[2]="exit";
-    *param[3]="salir";
-    *param[4]="infosis";
-    *param[5]="comando";
-    *param[6]="hist";
-    *param[7]="autores";
-    *param[8]="fecha";
-    *param[9]="pid";
-    *param[10]="carpeta";
-
-
-}
-void infoparametros(char *param []){
-    *param[0]="ayuda [cmd]	Muestra ayuda sobre los comandos";
-    *param[1]="bye 	Termina la ejecucion del shell";
-    *param[2]="exit";
-    *param[3]="salir 	Termina la ejecucion del shell 	Termina la ejecucion del shell";
-    *param[4]="infosis 	Muestra informacion de la maquina donde corre el shell";
-    *param[5]="comando [-N]	Repite el comando N (del historico)";
-    *param[6]="hist [-c|-N]	Muestra el historico de comandos, con -c lo borra";
-    *param[7]="autores [-n|-l]	Muestra los nombres y logins de los autores";
-    *param[8]="fecha [-d|.h	Muestra la fecha y o la hora actual";
-    *param[9]="pid [-p]	Muestra el pid del shell o de su proceso padre";
-    *param[10]="carpeta [dir]	Cambia (o muestra) el directorio actual del shell";
+    return 1;
 }
 
-void doayuda(char*param[]) {
-    char *ayuda[11];
-    char *ayuda2[11];
-    if (**param != 0) {
-        if (strcmp(param[1], "cmd") == 0) {
+struct t_ayuda{
+    char* cmd;
+    char* msg;
+};
+char * infoparametros(char * cmd){
+    static struct t_ayuda V[11];
+    
+    V[0].cmd="ayuda";
+    V[1].cmd="bye";
+    V[2].cmd="exit";
+    V[3].cmd="salir ";
+    V[4].cmd="infosis ";
+    V[5].cmd="comando ";
+    V[6].cmd="hist";
+    V[7].cmd="autores"; 
+    V[8].cmd="fecha";
+    V[9].cmd="pid ";
+    V[10].cmd="carpeta";
+    
+    V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos";
+    V[1].msg="bye 	Termina la ejecucion del shell";
+    V[2].msg="exit";
+    V[3].msg="salir 	Termina la ejecucion del shell 	Termina la ejecucion del shell";
+    V[4].msg="infosis 	Muestra informacion de la maquina donde corre el shell";
+    V[5].msg="comando [-N]	Repite el comando N (del historico)";
+    V[6].msg="hist [-c|-N]	Muestra el historico de comandos, con -c lo borra";
+    V[7].msg="autores [-n|-l]	Muestra los nombres y logins de los autores";
+    V[8].msg="fecha [-d|.h	Muestra la fecha y o la hora actual";
+    V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre";
+    V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell";
+    
+    
+    int i;
+    for (i=0; i<11; i++)
+        if (strcmp(V[i].cmd, cmd) ==0)
+                break;
+    if (i==11) return "";    
+    return V[i].msg;
+    
+}
 
-            printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda");
+int doayuda(char*param[]) {
+ 
+    if (param[1]!= NULL) {
+        infoparametros(param[1]);
+
         } else {
-            infoparametros(ayuda);
-            parametros(ayuda2);
-            for (int i = 0; i < param[11]; i++) {
-                if (strcmp(param[i], infoparametros) == 0) {
-                    printf("%s", parametros);
-                }
-            }
-            printf("\n");
+        printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda");
+
+        printf("\n");
+        }
+    return 1;
+    }
+
+int dopid(char *param[]){
+    int pid,p_pid;
+    pid=getpid();
+    p_pid=getppid();
+
+    if (param != 0) {
+        if (strcmp(param[1], "-p") == 0) { //proceso padre
+            printf("Proceso padre del shell: %d\n", p_pid);
         }
     }
+    else { //proceso hijo
+        printf("Proceso del shell: %d\n", pid);
+
+    }
+    printf("\n");
+    return 1;
+
+
 }
 
-    void dopid(char *param[]){
-        int pid,p_pid;
-        pid=getpid();
-        p_pid=getppid();
+int docarpeta (char *param[]){
+    if (param != 0) {
+        if (strcmp(param[1], "direct") == 0) {
+            if((chdir(*param)==-1)){
+                printf("No se pudo cambiar el directorio");
 
-        if (param != 0) {
-            if (strcmp(param[1], "-p") == 0) { //proceso padre
-                printf("Proceso padre del shell: %d\n", p_pid);
+            }else{
+                printf("%s", chdir(*param[]);)
             }
-        }
-        else { //proceso hijo
-            printf("Proceso del shell: %d\n", pid);
 
         }
-        printf("\n");
-
-
     }
+    else {//Imprime el directorio actual.
+        char *currentDir= getcwd(NULL,0);
+        printf("\nPWD==>%s",currentDir);
 
-    void docarpeta (char *param[]){
-        if (param != 0) {
-            if (strcmp(param[1], "direct") == 0) {
-                if((chdir(*param)==-1)){
-                    printf("No se pudo cambiar el directorio");
+    }        printf("\n");
 
-                }else{
-                    printf("%s", chdir(*param[]);)
-                }
+    return 1;
+}
 
-            }
-        }
-        else {//Imprime el directorio actual.
-            char *currentDir= getcwd(NULL,0);
-            printf("\nPWD==>%s",currentDir);
-
-        }        printf("\n");
-
-
-    }
-
-void doHist(char* param[],tList Lista){
+int doHist(char* param[],tList Lista){
     if(param!=0){
         if(strcmp(param[1],"-c")==0){
             tPosL k;
             for(k=Lista;k->next!=NULL;k=k->next){
-            deleteAtPosition(k,&Lista);
-        }
+                deleteAtPosition(k,&Lista);
+            }
         }else{
             printn(param[1],Lista);
         }
@@ -256,8 +264,9 @@ void doHist(char* param[],tList Lista){
     }else{
         printList(Lista);
     }
-    }
-void doComandoN(char* param[],tList L){
+    return 1;
+}
+int doComandoN(char* param[],tList L){
     tPosL p;
     char copy[N];
     char *trozoscopy[N/2];
@@ -270,5 +279,6 @@ void doComandoN(char* param[],tList L){
     printf("%s",copy);
     int ntrozos= TrocearCadena(copy, trozoscopy);
     ProcesarEntrada(trozoscopy, ntrozos);
+    return 1;
 }
 
