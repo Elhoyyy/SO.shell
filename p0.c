@@ -29,12 +29,14 @@ int main (){
     int acabar=0;
     char cadena[N] ;
     char *trozos[N/2];
+    tList Lista;
+    createList(&Lista);
 
 
     while ( !acabar){
         imprimirPrompt();
         leerEntrada(*cadena);
-        insertItem(cadena,Lista);
+        insertItem(cadena,&Lista);
         int ntrozos= TrocearCadena(cadena, trozos);
         ProcesarEntrada(trozos, ntrozos);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
