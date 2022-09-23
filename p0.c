@@ -1,5 +1,4 @@
 
-
 #include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
@@ -43,15 +42,15 @@ int main(){
         imprimirPrompt();
         
         if (acabar >0) {
-        	//char *cmd = getListaComando(acabar,Lista);
-        	//strcpy(cadena,cmd);
+        	char *cmd = getListaComando(acabar,Lista);
+        	strcpy(cadena,cmd);
         }
        
 	leerEntrada(cadena);
         
         insertItem(cadena,Lista);
         int ntrozos= TrocearCadena(cadena, trozos);
-        acabar=ProcesarEntrada(trozos);
+        acabar=ProcesarEntrada(trozos, Lista);
         // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
     }
     
@@ -59,7 +58,13 @@ int main(){
     free (Lista);
 }
 
-
+char * getListaComando(int acabar, tList Lista){
+	tPosL p= Lista ->next;
+	for(int i=0; i< acabar; i++){
+		p=p->next;
+		}
+	return getChar(p, Lista);
+}
 
 
 
@@ -211,18 +216,22 @@ struct t_ayuda{
 
 
     int i;
-    for (i=0; i<11; i++)
+    for (i=0; i<11; i++){
         if (strcmp(V[i].cmd, cmd) ==0)
             return V[i].msg;
-            else 
-            return "";
+            }
+            
+            if(i==11){
 
+            return "";
+            }
 }
+
 
 int doayuda(char *param[]) {
 
     if (param[1]!= NULL) {
-        infoparametros(param[1]);
+        printf("%s\n",infoparametros(param[1]));
 
     } else {
         printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda");
@@ -270,11 +279,8 @@ int docarpeta (char *param[]){
     return 1;
 }
 
-
-int dohist(char* param[],tList Lista){return 0;}
-/*
-int dohist2(char* param[],tList Lista){
-    if(param[1]!=NULL){
+int dohist(char* param[]){
+ if(param[1]!=NULL){
         if(strcmp(param[1],"-c")==0){
             tPosL k;
             for(k=Lista;k->next!=NULL;k=k->next){
@@ -283,27 +289,9 @@ int dohist2(char* param[],tList Lista){
         }else{
             printn(param[1],Lista);
         }
-
     }else{
         printList(Lista);
     }
     return 1;
 }
- */
-int docomando(char* param[],tList L){ return 0;}
-/*
-int docomando2(char* param[],tList L){
-    tPosL p;
-    char copy[N];
-    char *trozoscopy[N/2];
-    long n= strtol(*param,NULL,10); // teoricamente transforma el char en un int lo busque en internet
-    p=L;
-    for(int i=0;i<n;i++){
-        p=p->next;
-    }
-    strcpy(copy, getChar(p, L));
-    printf("%s",copy);
-    int ntrozos= TrocearCadena(copy, trozoscopy);
-    ProcesarEntrada(trozoscopy);
-    return 1;
-}*
+
