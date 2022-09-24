@@ -1,5 +1,5 @@
 
-#include "list.c"
+#include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -40,19 +40,19 @@ int main(){
 
         imprimirPrompt();
 
-        if (acabar >0) {
+       /* if (acabar > 0) {
             char *cmd = getListaComando(acabar,Lista);
-            strcpy(cadena,cmd);
-        }
+            strcpy( cadena, cmd);
+        }*/
 
         leerEntrada(cadena);
         insertItem(*cadena,Lista);
         TrocearCadena(cadena, trozos);
         acabar=ProcesarEntrada(trozos,Lista);
-        // aqui pondria un if para si el int que te devuelve no es el numero que le ponemos a hist y al comando n se guarde en la lista de comando
+
     }
 
-    //destruirlista ==> free(Lista);
+
     free (Lista);
 }
 
@@ -64,7 +64,7 @@ int main(){
 void leerEntrada(char *cadena){
 
     fgets(cadena, N, stdin );
-    // return x;
+
 }
 
 
@@ -78,7 +78,7 @@ int TrocearCadena(char * cadena, char * trozos[])
 }
 
 void imprimirPrompt(){
-    printf("$ ");
+    printf("$");
 }
 
 int ProcesarEntrada(char * trozos[],tList Lista){
@@ -96,8 +96,8 @@ int ProcesarEntrada(char * trozos[],tList Lista){
     }else if(strcmp(param[0], "hist")==0){
         i=dohist(param,Lista);
     }else if(strcmp(param[0], "comando")==0){
-        long n= strtol(param[1],NULL,10);
-        i=n;
+        //long n= strtol(param[1],NULL,10);
+        //i=n;
     }else if(strcmp(param[0], "salir")==0){
         i=dosalir();
     }else if(strcmp(param[0], "exit")==0){
@@ -185,33 +185,33 @@ char * infoparametros(char * cmd){
     V[0].cmd="ayuda";
     V[1].cmd="bye";
     V[2].cmd="exit";
-    V[3].cmd="salir ";
-    V[4].cmd="infosis ";
-    V[5].cmd="comando ";
+    V[3].cmd="salir";
+    V[4].cmd="infosis";
+    V[5].cmd="comando";
     V[6].cmd="hist";
     V[7].cmd="autores";
     V[8].cmd="fecha";
-    V[9].cmd="pid ";
+    V[9].cmd="pid";
     V[10].cmd="carpeta";
 
-    V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos";
-    V[1].msg="bye 	Termina la ejecucion del shell";
+    V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos\n";
+    V[1].msg="bye 	Termina la ejecucion del shell\n";
     V[2].msg="exit";
-    V[3].msg="salir 	Termina la ejecucion del shell 	Termina la ejecucion del shell";
-    V[4].msg="infosis 	Muestra informacion de la maquina donde corre el shell";
-    V[5].msg="comando [-N]	Repite el comando N (del historico)";
-    V[6].msg="hist [-c|-N]	Muestra el historico de comandos, con -c lo borra";
-    V[7].msg="autores [-n|-l]	Muestra los nombres y logins de los autores";
-    V[8].msg="fecha [-d|.h	Muestra la fecha y o la hora actual";
-    V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre";
-    V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell";
+    V[3].msg="salir 	Termina la ejecucion del shell 	Termina la ejecucion del shell\n";
+    V[4].msg="infosis 	Muestra informacion de la maquina donde corre el shell\n";
+    V[5].msg="comando [-N]	Repite el comando N (del historico)\n";
+    V[6].msg="hist [-c|-N]	Muestra el historico de comandos, con -c lo borra\n";
+    V[7].msg="autores [-n|-l]	Muestra los nombres y logins de los autores\n";
+    V[8].msg="fecha [-d|.h	Muestra la fecha y o la hora actual\n";
+    V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre\n";
+    V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell\n";
 
 
     int i;
     for (i=0; i<11; i++)
         if (strcmp(V[i].cmd, cmd) ==0)
             return V[i].msg;
-        else
+        if(i==11)
             return "";
 
 }
@@ -286,11 +286,10 @@ int dohist(char* param[],tList Lista){
     return 1;
 }
 
-char* getListaComando(int acabar,tList Lista){
-    tPosL p=Lista->next;
-    for(int i=0;i<acabar;i++){
-        p=p->next;
-    }
-    return getChar(p,Lista);
-}
+int docomando (char* param[], tList Lista){
+	if(param[1]!=NULL){
+	        long n= strtol(param[1],NULL,10);
+		if(stcrmp(param[1],n)==0){
+		
 
+*/
