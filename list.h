@@ -23,4 +23,4 @@ char* getChar(tPosL p,tList L);
 void printList(tList L);
 bool insertItem(char d,tList L);
 void printn(char* param[],tList L);
-void deleteAtPosition (tP
+void deleteAtPosition (tPosL p, tList *L);
