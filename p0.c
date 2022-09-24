@@ -40,13 +40,13 @@ int main(){
 
         imprimirPrompt();
 
-       /* if (acabar > 0) {
-            char *cmd = getListaComando(acabar,Lista);
-            strcpy( cadena, cmd);
-        }*/
+        /* if (acabar > 0) {
+             char *cmd = getListaComando(acabar,Lista);
+             strcpy( cadena, cmd);
+         }*/
 
         leerEntrada(cadena);
-        insertItem(*cadena,Lista);
+        insertItem(cadena,Lista);
         TrocearCadena(cadena, trozos);
         acabar=ProcesarEntrada(trozos,Lista);
 
@@ -56,6 +56,15 @@ int main(){
     free (Lista);
 }
 
+/*
+char* getListaComando(int acabar,tList Lista){
+    tPosL p=Lista->next;
+    for(int i=0;i<acabar;i++){
+        p=p->next;
+    }
+    return getChar(p,Lista);
+}
+ */
 
 
 
@@ -211,8 +220,8 @@ char * infoparametros(char * cmd){
     for (i=0; i<11; i++)
         if (strcmp(V[i].cmd, cmd) ==0)
             return V[i].msg;
-        if(i==11)
-            return "";
+    if(i==11)
+        return "";
 
 }
 
@@ -272,11 +281,12 @@ int docarpeta (char *param[]){
 
 int dohist(char* param[],tList Lista){
     if(param[1]!=NULL){
-        if(strcmp(param[1],"-c")==0){
+        if(strcmp(param[1],"-c")==0) {
             tPosL k;
-            for(k=Lista->next;k->next!=NULL;k=k->next){
-                deleteAtPosition(k,Lista);
+            for (k = Lista->next; k->next != NULL; k = k->next) {
+                deleteAtPosition(k, &Lista);
             }
+
         }else{
             printn(&param[1],Lista);
         }
@@ -285,11 +295,3 @@ int dohist(char* param[],tList Lista){
     }
     return 1;
 }
-
-int docomando (char* param[], tList Lista){
-	if(param[1]!=NULL){
-	        long n= strtol(param[1],NULL,10);
-		if(stcrmp(param[1],n)==0){
-		
-
-*/
