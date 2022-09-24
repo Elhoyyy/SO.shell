@@ -72,3 +72,13 @@ void deleteAtPosition (tPosL p, tList L) {
     free(p);
 
 }
+
+char* getListaComando(int acabar,tList Lista){
+    tPosL p=Lista->next;
+    for(int i=0;i<acabar;i++){
+        p=p->next;
+    }
+    return getChar(p,Lista);
+}
+
+
