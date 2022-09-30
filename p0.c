@@ -1,5 +1,3 @@
-
-
 #include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +6,8 @@
 #include <sys/utsname.h>
 #include <sys/syscall.h>
 #include <time.h>
-
+#include <sys/types.h>
+#include <sys/stat.h>
 #define N 48
 
 void leerEntrada(char *cadena);
@@ -28,6 +27,14 @@ int doinfosis(char *param[]);
 int doayuda(char *param[]);
 char * infoparametros(char *cmd);
 char* getListaComando(int acabar,tList LIsta);
+int doayuda(char *param[]);
+int dostats(char *param[]);
+int dolist(char *param[]);
+int dodelete(char *param[]);
+int dodeletree(char *param[]);
+int docreate(char *param[]);
+
+
 
 int main(){
     int acabar=0;
@@ -41,13 +48,13 @@ int main(){
 
         imprimirPrompt();
 
-        /* if (acabar > 0) {
+         if (acabar > 0) {
              char *cmd = getListaComando(acabar,Lista);
              strcpy( cadena, cmd);
-         }*/
+         }
 
         leerEntrada(cadena);
-        insertItem(*cadena,Lista);
+        insertItem(cadena,Lista);
         TrocearCadena(cadena, trozos);
         acabar=ProcesarEntrada(trozos,Lista);
 
@@ -57,7 +64,7 @@ int main(){
     free (Lista);
 }
 
-/*
+
 char* getListaComando(int acabar,tList Lista){
     tPosL p=Lista->next;
     for(int i=0;i<acabar;i++){
@@ -65,7 +72,7 @@ char* getListaComando(int acabar,tList Lista){
     }
     return getChar(p,Lista);
 }
- */
+
 
 
 
@@ -119,8 +126,20 @@ int ProcesarEntrada(char * trozos[],tList Lista){
     }else if(strcmp(param[0], "infosis")==0){
         i=doinfosis(param);
 
-    }else if(strcmp(param[0], "ayuda")==0){
-        i=doayuda(param);
+    }else if(strcmp(param[0], "ayuda")==0) {
+        i = doayuda(param);
+    }else if(strcmp(param[0], "stats")==0) {
+        i = dostats(param);
+    }else if(strcmp(param[0], "list")==0) {
+        i = dolist(param);
+    }else if(strcmp(param[0], "create")==0) {
+        i = docreate(param);
+    }else if(strcmp(param[0], "delete")==0){
+        i=dodelete(param);
+    }else if(strcmp(param[0], "deletree")==0){
+        i=dodeletree(param);
+
+
 
     }else {
         printf("\nEste comando no existe\n");
@@ -130,7 +149,7 @@ int ProcesarEntrada(char * trozos[],tList Lista){
 
 int doexit() {
     return -1;
-    ;}
+    }
 int dobye() {
     return -1;
 }
@@ -203,6 +222,11 @@ char * infoparametros(char * cmd){
     V[8].cmd="fecha";
     V[9].cmd="pid";
     V[10].cmd="carpeta";
+    V[11].cmd="create\n";
+    V[12].cmd="stat\n";
+    V[13].cmd="list\n";
+    V[14].cmd="delete\n";
+    V[15].cmd="deletree\n";
 
     V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos\n";
     V[1].msg="bye 	Termina la ejecucion del shell\n";
@@ -215,6 +239,12 @@ char * infoparametros(char * cmd){
     V[8].msg="fecha [-d|.h	Muestra la fecha y o la hora actual\n";
     V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre\n";
     V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell\n";
+    V[11].msg="\n";
+    V[12].msg="\n";
+    V[13].msg="\n";
+    V[14].msg="\n";
+    V[15].msg="\n";
+
 
 
     int i;
@@ -232,7 +262,7 @@ int doayuda(char *param[]) {
         printf("%s",infoparametros(param[1]));
 
     } else {
-        printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda");
+        printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda create stat list delete deletree");
 
         printf("\n");
     }
@@ -281,18 +311,73 @@ int docarpeta (char *param[]){
 
 
 int dohist(char* param[],tList Lista){
-    /*if(param[1]!=NULL){
-        if(strcmp(param[1],"-c")==0) {
-            tPosL k;
-            for (k = Lista->next; k->next != NULL; k = k->next) {
-                deleteAtPosition(k, &Lista);
-            }
+    if(param[1]!=NULL) {
+        if (strcmp(param[1], "-c") == 0) {
+            deleteList(Lista);
 
-        }else{
-            printn(&param[1],Lista);
+        } else {
+            printn(&param[1], Lista);
+
         }
     }else{
-       */ printList(&Lista);
-    //}
+       printList(Lista);
+    }
+    return 1;
+}
+
+int docreate (char *param[]){
+    if(param!=NULL){
+        if(strcmp(param[1], "-f")==0){
+
+        }else if (strcmp(param[1], "-f")!=0){
+
+        }
+    }else{
+        printf("");
+    }
+
+}
+
+int dostats (char *param[]){
+    int i=0;
+    struct stat{};
+
+    while(param!=NULL) {
+        if (strcmp(param[1], "-long") == 0) {
+
+        } else if (strcmp(param[1], "-link") == 0) {
+
+        } else if (strcmp(param[1], "-acc") == 0) {
+
+        } else break;
+    }i++;
+
+}
+
+int dolist(char *param[]){
+    int i=0;
+
+    while(param!=NULL) {
+        if (strcmp(param[1], "-reca") == 0) {
+
+        } else if (strcmp(param[1], "-recb") == 0) {
+
+        } else if (strcmp(param[1], "-acc") == 0) {
+
+        } else break;
+    }
+    i++;
+}
+int dodelete(char *param[]){
+
+
+
+    return 1;
+}
+
+int dodeletree(char *param[]){
+
+
+
     return 1;
 }
