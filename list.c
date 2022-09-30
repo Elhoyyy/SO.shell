@@ -1,6 +1,4 @@
-//
-// Created by danip on 22/09/2022.
-//
+
 #include "headed_linked_list.h"
 void createList(tList* L){
     tPosL cabeceira;
@@ -20,10 +18,12 @@ char* getChar( tPosL p, tList L){
     return &p->datos; //RETORNA LvOS DATOS DE LA POSICIÓN QUE SE INTRODUCE.
 }
 
-void printList(tList L){
+void printList(tList *L){
     tPosL p;
-    for(p=L->next;p->next!=NULL;p=p->next){
-        printf("%s",getChar(p,L));
+    int i=1;
+    for(p=p->next;p->next!=NULL;p=p->next){
+        printf("%d->%s",i, getChar(p,*L));
+        i++;
     }
 }
 
