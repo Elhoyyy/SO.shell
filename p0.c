@@ -1,4 +1,5 @@
 
+
 #include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
@@ -46,7 +47,7 @@ int main(){
          }*/
 
         leerEntrada(cadena);
-        insertItem(cadena,Lista);
+        insertItem(*cadena,Lista);
         TrocearCadena(cadena, trozos);
         acabar=ProcesarEntrada(trozos,Lista);
 
@@ -280,7 +281,7 @@ int docarpeta (char *param[]){
 
 
 int dohist(char* param[],tList Lista){
-    if(param[1]!=NULL){
+    /*if(param[1]!=NULL){
         if(strcmp(param[1],"-c")==0) {
             tPosL k;
             for (k = Lista->next; k->next != NULL; k = k->next) {
@@ -291,7 +292,7 @@ int dohist(char* param[],tList Lista){
             printn(&param[1],Lista);
         }
     }else{
-        printList(Lista);
-    }
+       */ printList(&Lista);
+    //}
     return 1;
 }
