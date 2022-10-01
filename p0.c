@@ -326,16 +326,23 @@ int dohist(char* param[],tList Lista){
 }
 
 int docreate (char *param[]){
+    int creat2,mkdir2;
     if(param!=NULL){
         if(strcmp(param[1], "-f")==0){
-
-        }else if (strcmp(param[1], "-f")!=0){
-
+            creat2=creat(param[2],766);
+            if(creat2==-1){
+                perror("No se pudo crear el archivo");
+            }
+        }else{
+            mkdir2=mkdir(param[1],0766);
+            if(mkdir2==-1){
+                perror("No se pudo crear el directorio");
+            }
         }
     }else{
         printf("");
     }
-
+    return 1;
 }
 
 int dostats (char *param[]){
