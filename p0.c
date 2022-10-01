@@ -8,6 +8,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #define N 48
 
 void leerEntrada(char *cadena);
