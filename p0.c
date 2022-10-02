@@ -224,11 +224,11 @@ char * infoparametros(char * cmd){
     V[8].cmd="fecha";
     V[9].cmd="pid";
     V[10].cmd="carpeta";
-    V[11].cmd="create\n";
-    V[12].cmd="stat\n";
-    V[13].cmd="list\n";
-    V[14].cmd="delete\n";
-    V[15].cmd="deltree\n";
+    V[11].cmd="create";
+    V[12].cmd="stat";
+    V[13].cmd="list";
+    V[14].cmd="delete";
+    V[15].cmd="deltree";
 
     V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos\n";
     V[1].msg="bye 	Termina la ejecucion del shell\n";
@@ -242,14 +242,14 @@ char * infoparametros(char * cmd){
     V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre\n";
     V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell\n";
     V[11].msg="create [-f] [name]	Crea un directorio o un fichero (-f)\n";
-    V[12].msg="stat [-long][-link][-acc] name1 name2 ..	lista ficheros;"
-              "-long: listado largo"
-              "-acc: acesstime"
-              "-link: si es enlace simbolico, el path contenido\n";
-    V[13].msg="list [-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 ..	lista contenidos de directorios"
-              "-hid: incluye los ficheros ocultos"
-              "		-reca: recursivo (antes)"
-              "		-recb: recursivo (despues)"
+    V[12].msg="stat [-long][-link][-acc] name1 name2 ..	lista ficheros;\n"
+              "		-long: listado largo\n"
+              "		-acc: acesstime\n"
+              "		-link: si es enlace simbolico, el path contenido\n";
+    V[13].msg="list [-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 ..	lista contenidos de directorios\n"
+              "-hid: incluye los ficheros ocultos\n"
+              "		-reca: recursivo (antes)\n"
+              "		-recb: recursivo (despues)\n"
               "		resto parametros como stat\n";
     V[14].msg="delete [name1 name2 ..]	Borra ficheros o directorios vacios\n";
     V[15].msg="deltree [name1 name2 ..]	Borra ficheros o directorios no vacios recursivamente\n";
@@ -271,7 +271,7 @@ int doayuda(char *param[]) {
         printf("%s",infoparametros(param[1]));
 
     } else {
-        printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda create stat list delete deletree");
+        printf("'ayuda cmd' donde cmd es uno de los siguientes comandos:fin salir bye fecha pid autores hist comando carpeta infosis ayuda create stat list delete deltree");
 
         printf("\n");
     }
@@ -325,7 +325,30 @@ int dohist(char* param[],tList Lista){
             deleteList(Lista);
 
         } else {
-            printn(&param[1], Lista);
+        long n= strtol(param[1],LNULL,10);
+        tPosL p;
+        int counter=0;
+        char *cmd;
+        for(p=Lista->next;p->next!=NULL;p=p->next){
+            counter++;
+        }
+        p=Lista->next;
+        
+        if(n<=counter&&n>=1) {
+            for (int i = 1; i <= n; i++) {
+
+
+                    cmd = getChar(p, Lista);
+                    printf("%s", cmd);    
+                    p = p->next;            
+                    
+                }
+
+            }
+            else{
+            printf("Número de comando inexistente.\n");
+            }
+		
 
         }
     }else{
@@ -340,19 +363,23 @@ int docomando (char * param[], tList Lista){
         tPosL p;
         int counter=0;
         char *cmd;
+        char *trozos2[N/2];
         for(p=Lista->next;p->next!=NULL;p=p->next){
             counter++;
         }
         p=Lista->next;
-        if(n<=counter) {
-            for (int i = 0; i < counter; i++) {
-                p = p->next;
-                if (i == n) {
+        
+        if(n<=counter&&n>=1) {
+            for (int i = 1; i <= n; i++) {
+		if(i==n){
+
                     cmd = getChar(p, Lista);
-                    printf("%s", cmd);
-                    leerEntrada(cmd);
+		    TrocearCadena(cmd, trozos2);
+                    ProcesarEntrada(trozos2,Lista);
                     break;
                 }
+                 p = p->next;            
+
             }
             }else{
             printf("Número de comando inexistente.\n");
@@ -360,6 +387,7 @@ int docomando (char * param[], tList Lista){
     }else{
         printf("Tiene que introducir el número de comando que quiere ejecutar");
     }
+    return 1;
 }
 
 int docreate (char *param[]){
