@@ -10,6 +10,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <pwd.h>
+#include <grp.h>
 #define N 48
 
 void leerEntrada(char *cadena);
@@ -411,18 +413,49 @@ int docreate (char *param[]){
 }
 
 int dostats (char *param[]){
-    int i=0;
-    struct stat{};
+        int i=1;
+    int l=0;
+    int link=0;
+    int acc=0;
 
+     struct stat st;
     while(param!=NULL) {
-        if (strcmp(param[1], "-long") == 0) {
-
-        } else if (strcmp(param[1], "-link") == 0) {
-
-        } else if (strcmp(param[1], "-acc") == 0) {
-
+        if (strcmp(param[i], "-long") == 0) {
+             l=1;
+        } else if (strcmp(param[i], "-link") == 0) {
+             link=1;
+        } else if (strcmp(param[i], "-acc") == 0) {
+             acc=1;
         } else break;
-    }i++;
+        i++;
+     }
+        while(param!=NULL){
+        lstat(param[i],&st);
+        if(lstat(param[i],&st)!=-1){
+        if (l==1){
+            if(acc==1){
+                struct tm *acces=localtime(&st.st_atime);
+                printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
+            }else{
+                struct tm *mod=localtime(&st.st_mtime);
+                printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
+            }
+            if(link==1 && strcmp(LetraTF(st.),'l')==0){
+                printf
+            }else{
+                printf("%d ",st.st_nlink);
+            }
+            struct passwd *uid=getpwuid(st.st_uid);
+            struct group *gid=getgrgid(st.st_gid);
+            printf("(%ju), %s %s %s ",(uintmax_t)st.st_ino,uid->pw_name,gid->gr_name,st.convierteModo2(st.st_mode));
+        }
+        printf("%ld %s\n",st.st_size,param[i]);
+        i++;
+        }else{
+            perror("No se pudo obtener los datos de ese archivo");
+        }
+}
+        return 1;
 
 }
 
