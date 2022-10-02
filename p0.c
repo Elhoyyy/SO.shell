@@ -28,14 +28,14 @@ int dobye();
 int doinfosis(char *param[]);
 int doayuda(char *param[]);
 char * infoparametros(char *cmd);
-char* getListaComando(int acabar,tList LIsta);
+//char* getListaComando(int acabar,tList LIsta);
 int doayuda(char *param[]);
 int dostats(char *param[]);
 int dolist(char *param[]);
 int dodelete(char *param[]);
 int dodeltree(char *param[]);
 int docreate(char *param[]);
-
+int docomando (char *param[], tList Lista);
 
 
 int main(){
@@ -49,11 +49,12 @@ int main(){
     while ( acabar!=-1 ){
 
         imprimirPrompt();
-
-         if (acabar > 0) {
-             char *cmd = getListaComando(acabar,Lista);
-             strcpy( cadena, cmd);
-         }
+        /*
+        if (acabar > 0) {
+            char *cmd = getListaComando(acabar,Lista);
+            strcpy( cadena, cmd);
+        }
+         */
 
         leerEntrada(cadena);
         insertItem(cadena,Lista);
@@ -66,7 +67,7 @@ int main(){
     free (Lista);
 }
 
-
+/*
 char* getListaComando(int acabar,tList Lista){
     tPosL p=Lista->next;
     for(int i=0;i<acabar;i++){
@@ -75,7 +76,7 @@ char* getListaComando(int acabar,tList Lista){
     return getChar(p,Lista);
 }
 
-
+*/
 
 
 
@@ -115,8 +116,7 @@ int ProcesarEntrada(char * trozos[],tList Lista){
     }else if(strcmp(param[0], "hist")==0){
         i=dohist(param,Lista);
     }else if(strcmp(param[0], "comando")==0){
-        //long n= strtol(param[1],NULL,10);
-        //i=n;
+        i=docomando(param,Lista);
     }else if(strcmp(param[0], "salir")==0){
         i=dosalir();
     }else if(strcmp(param[0], "exit")==0){
@@ -139,7 +139,7 @@ int ProcesarEntrada(char * trozos[],tList Lista){
     }else if(strcmp(param[0], "delete")==0){
         i=dodelete(param);
     }else if(strcmp(param[0], "deltree")==0){
-        i=dodeletree(param);
+        i=dodeltree(param);
 
 
 
@@ -151,7 +151,7 @@ int ProcesarEntrada(char * trozos[],tList Lista){
 
 int doexit() {
     return -1;
-    }
+}
 int dobye() {
     return -1;
 }
@@ -211,7 +211,7 @@ char * infoparametros(char * cmd){
         char* cmd;
         char* msg;
     };
-    static struct t_ayuda V[11];
+    static struct t_ayuda V[16];
 
     V[0].cmd="ayuda";
     V[1].cmd="bye";
@@ -242,25 +242,25 @@ char * infoparametros(char * cmd){
     V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre\n";
     V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell\n";
     V[11].msg="create [-f] [name]	Crea un directorio o un fichero (-f)\n";
-    V[12].msg="stat [-long][-link][-acc] name1 name2 ..	lista ficheros;
-		"-long: listado largo"
-		"-acc: acesstime"
-		"-link: si es enlace simbolico, el path contenido\n";
-    V[13].msg="list [-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 ..	lista contenidos de directorios
-		"-hid: incluye los ficheros ocultos"
-"		-reca: recursivo (antes)"
-"		-recb: recursivo (despues)"
-"		resto parametros como stat\n";
+    V[12].msg="stat [-long][-link][-acc] name1 name2 ..	lista ficheros;"
+              "-long: listado largo"
+              "-acc: acesstime"
+              "-link: si es enlace simbolico, el path contenido\n";
+    V[13].msg="list [-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 ..	lista contenidos de directorios"
+              "-hid: incluye los ficheros ocultos"
+              "		-reca: recursivo (antes)"
+              "		-recb: recursivo (despues)"
+              "		resto parametros como stat\n";
     V[14].msg="delete [name1 name2 ..]	Borra ficheros o directorios vacios\n";
     V[15].msg="deltree [name1 name2 ..]	Borra ficheros o directorios no vacios recursivamente\n";
 
 
 
     int i;
-    for (i=0; i<11; i++)
+    for (i=0; i<16; i++)
         if (strcmp(V[i].cmd, cmd) ==0)
             return V[i].msg;
-    if(i==11)
+    if(i==16)
         return "";
 
 }
@@ -329,9 +329,37 @@ int dohist(char* param[],tList Lista){
 
         }
     }else{
-       printList(Lista);
+        printList(Lista);
     }
     return 1;
+}
+
+int docomando (char * param[], tList Lista){
+    if(param[1]!=NULL){
+        long n= strtol(param[1],LNULL,10);
+        tPosL p;
+        int counter=0;
+        char *cmd;
+        for(p=Lista->next;p->next!=NULL;p=p->next){
+            counter++;
+        }
+        p=Lista->next;
+        if(n<=counter) {
+            for (int i = 0; i < counter; i++) {
+                p = p->next;
+                if (i == n) {
+                    cmd = getChar(p, Lista);
+                    printf("%s", cmd);
+                    leerEntrada(cmd);
+                    break;
+                }
+            }
+            }else{
+            printf("Número de comando inexistente.\n");
+            }
+    }else{
+        printf("Tiene que introducir el número de comando que quiere ejecutar");
+    }
 }
 
 int docreate (char *param[]){
