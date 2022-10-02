@@ -15,25 +15,25 @@ bool createNode( tPosL* p){
 
 
 char* getChar( tPosL p, tList L){
-    return &p->datos; //RETORNA LvOS DATOS DE LA POSICIÓN QUE SE INTRODUCE.
+    return p->datos; //RETORNA LvOS DATOS DE LA POSICIÓN QUE SE INTRODUCE.
 }
 
-void printList(tList *L){
+void printList(tList L){
     tPosL p;
     int i=1;
-    for(p=p->next;p->next!=NULL;p=p->next){
-        printf("%d->%s",i, getChar(p,*L));
+    for(p=L->next;p->next!=NULL;p=p->next){
+        printf("%d->%s",i, getChar(p,L));
         i++;
     }
 }
 
 
-bool insertItem(char d, tList L) {
+bool insertItem(char * d, tList L) {
     tPosL p, q; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
     if (!createNode(&q)) { //SI NO HAY NODO SE RETORNA FALSO.
         return false;
     } else {
-        q->datos = d;
+        strcpy(q->datos, d);
         q->next = LNULL;
         if (L->next == LNULL) { //LISTA VACÍA.
             L->next = q;
@@ -44,7 +44,6 @@ bool insertItem(char d, tList L) {
         return true;
     }
 }
-
 
 
 void printn(char* param[],tList L){
@@ -65,20 +64,16 @@ void printn(char* param[],tList L){
     }
 }
 
-void deleteAtPosition (tPosL p, tList *L) {
-    tPosL q;
-    if (p->next == LNULL) { //ELIMINAR ELEMENTO DEL FINAL.
-        for (q = *L; q->next != p; q = q->next);
-        q->next = LNULL;
+void deleteList (tList L){
+    tPosL q, p ;
+    q=L->next;
+    while(q!=NULL){
+        p=q;
+        q=q->next;
+        free (p);
 
-    } else { //ELIMINAR ELEMENTO DEL MEDIO.
-        q = p->next;
-        p->datos = q->datos;
-        p->next = q->next;
-        p = q;
     }
-    free(p);
-
+    L->next=NULL;
 }
 
 
