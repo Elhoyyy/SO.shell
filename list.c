@@ -46,23 +46,6 @@ bool insertItem(char * d, tList L) {
 }
 
 
-void printn(char* param[],tList L){
-    tPosL p;
-    int counter=0;
-    for(p=L->next;p->next!=NULL;p=p->next){
-        counter++;
-    }
-    long n= strtol(param[1],LNULL,10); // teoricamente transforma el char en un int lo busque en internet
-    p=L->next;
-    if(n<=counter) {
-        for (int i = 0; i < n; i++) {
-            p = p->next;
-            printf("%s", getChar(p, L));
-        }
-    }else{
-        printf("No hay este número de elementos");
-    }
-}
 
 void deleteList (tList L){
     tPosL q, p ;
