@@ -1,3 +1,4 @@
+
 #include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
@@ -32,7 +33,7 @@ int doayuda(char *param[]);
 int dostats(char *param[]);
 int dolist(char *param[]);
 int dodelete(char *param[]);
-int dodeletree(char *param[]);
+int dodeltree(char *param[]);
 int docreate(char *param[]);
 
 
@@ -137,7 +138,7 @@ int ProcesarEntrada(char * trozos[],tList Lista){
         i = docreate(param);
     }else if(strcmp(param[0], "delete")==0){
         i=dodelete(param);
-    }else if(strcmp(param[0], "deletree")==0){
+    }else if(strcmp(param[0], "deltree")==0){
         i=dodeletree(param);
 
 
@@ -227,7 +228,7 @@ char * infoparametros(char * cmd){
     V[12].cmd="stat\n";
     V[13].cmd="list\n";
     V[14].cmd="delete\n";
-    V[15].cmd="deletree\n";
+    V[15].cmd="deltree\n";
 
     V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos\n";
     V[1].msg="bye 	Termina la ejecucion del shell\n";
@@ -240,11 +241,18 @@ char * infoparametros(char * cmd){
     V[8].msg="fecha [-d|.h	Muestra la fecha y o la hora actual\n";
     V[9].msg="pid [-p]	Muestra el pid del shell o de su proceso padre\n";
     V[10].msg="carpeta [dir]	Cambia (o muestra) el directorio actual del shell\n";
-    V[11].msg="\n";
-    V[12].msg="\n";
-    V[13].msg="\n";
-    V[14].msg="\n";
-    V[15].msg="\n";
+    V[11].msg="create [-f] [name]	Crea un directorio o un fichero (-f)\n";
+    V[12].msg="stat [-long][-link][-acc] name1 name2 ..	lista ficheros;
+		"-long: listado largo"
+		"-acc: acesstime"
+		"-link: si es enlace simbolico, el path contenido\n";
+    V[13].msg="list [-reca] [-recb] [-hid][-long][-link][-acc] n1 n2 ..	lista contenidos de directorios
+		"-hid: incluye los ficheros ocultos"
+"		-reca: recursivo (antes)"
+"		-recb: recursivo (despues)"
+"		resto parametros como stat\n";
+    V[14].msg="delete [name1 name2 ..]	Borra ficheros o directorios vacios\n";
+    V[15].msg="deltree [name1 name2 ..]	Borra ficheros o directorios no vacios recursivamente\n";
 
 
 
@@ -383,7 +391,7 @@ int dodelete(char *param[]){
     return 1;
 }
 
-int dodeletree(char *param[]){
+int dodeltree(char *param[]){
 
 
 
