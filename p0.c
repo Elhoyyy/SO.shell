@@ -77,9 +77,20 @@ char* getListaComando(int acabar,tList Lista){
     }
     return getChar(p,Lista);
 }
-
 */
-
+const char * LetraTF (mode_t m)
+{
+    switch (m&S_IFMT) { /*and bit a bit con los bits de formato,0170000 */
+        case S_IFSOCK: return 's'; /*socket */
+        case S_IFLNK: return 'l'; /*symbolic link*/
+        case S_IFREG: return '-'; /* fichero normal*/
+        case S_IFBLK: return 'b'; /*block device*/
+        case S_IFDIR: return 'd'; /*directorio */
+        case S_IFCHR: return 'c'; /*char device*/
+        case S_IFIFO: return 'p'; /*pipe*/
+        default: return '?'; /*desconocido, no deberia aparecer*/
+    }
+}
 
 
 
@@ -327,30 +338,30 @@ int dohist(char* param[],tList Lista){
             deleteList(Lista);
 
         } else {
-        long n= strtol(param[1],LNULL,10);
-        tPosL p;
-        int counter=0;
-        char *cmd;
-        for(p=Lista->next;p->next!=NULL;p=p->next){
-            counter++;
-        }
-        p=Lista->next;
-        
-        if(n<=counter&&n>=1) {
-            for (int i = 1; i <= n; i++) {
+            long n= strtol(param[1],LNULL,10);
+            tPosL p;
+            int counter=0;
+            char *cmd;
+            for(p=Lista->next;p->next!=NULL;p=p->next){
+                counter++;
+            }
+            p=Lista->next;
+
+            if(n<=counter&&n>=1) {
+                for (int i = 1; i <= n; i++) {
 
 
                     cmd = getChar(p, Lista);
-                    printf("%s", cmd);    
-                    p = p->next;            
-                    
+                    printf("%s", cmd);
+                    p = p->next;
+
                 }
 
             }
             else{
-            printf("Número de comando inexistente.\n");
+                printf("Número de comando inexistente.\n");
             }
-		
+
 
         }
     }else{
@@ -370,22 +381,22 @@ int docomando (char * param[], tList Lista){
             counter++;
         }
         p=Lista->next;
-        
+
         if(n<=counter&&n>=1) {
             for (int i = 1; i <= n; i++) {
-		if(i==n){
+                if(i==n){
 
                     cmd = getChar(p, Lista);
-		    TrocearCadena(cmd, trozos2);
+                    TrocearCadena(cmd, trozos2);
                     ProcesarEntrada(trozos2,Lista);
                     break;
                 }
-                 p = p->next;            
+                p = p->next;
 
             }
-            }else{
+        }else{
             printf("Número de comando inexistente.\n");
-            }
+        }
     }else{
         printf("Tiene que introducir el número de comando que quiere ejecutar");
     }
@@ -393,16 +404,16 @@ int docomando (char * param[], tList Lista){
 }
 
 int docreate (char *param[]){
-    int creat2,mkdir2;
     if(param!=NULL){
+        char path[1000];
+        getcwd(path,sizeof (path));
+        strcat(path,"/");
         if(strcmp(param[1], "-f")==0){
-            creat2=creat(param[2],766);
-            if(creat2==-1){
+            if(creat(strcat(path,param[2]),0664)==-1){
                 perror("No se pudo crear el archivo");
-            }
-        }else{
-            mkdir2=mkdir(param[1],0766);
-            if(mkdir2==-1){
+                }
+            }else{
+            if(mkdir(strcat(path,param[1]),0755)==-1){
                 perror("No se pudo crear el directorio");
             }
         }
@@ -413,49 +424,62 @@ int docreate (char *param[]){
 }
 
 int dostats (char *param[]){
-        int i=1;
+    int i=1;
     int l=0;
     int link=0;
     int acc=0;
 
-     struct stat st;
+    struct stat st;
     while(param!=NULL) {
         if (strcmp(param[i], "-long") == 0) {
-             l=1;
+            l=1;
         } else if (strcmp(param[i], "-link") == 0) {
-             link=1;
+            link=1;
         } else if (strcmp(param[i], "-acc") == 0) {
-             acc=1;
+            acc=1;
         } else break;
         i++;
-     }
-        while(param!=NULL){
+    }
+    while(param!=NULL){
         lstat(param[i],&st);
+        char path[1000];
+        int error;
+        char conteido[1000];
         if(lstat(param[i],&st)!=-1){
-        if (l==1){
-            if(acc==1){
-                struct tm *acces=localtime(&st.st_atime);
-                printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
-            }else{
-                struct tm *mod=localtime(&st.st_mtime);
-                printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
+            if (l==1){
+                if(acc==1){
+                    struct tm *acces=localtime(&st.st_atime);
+                    printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
+                }else{
+                    struct tm *mod=localtime(&st.st_mtime);
+                    printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
+                }
+                if(link==1 && (strcmp(LetraTF(st.st_dev), "l") == 0)){
+                    getcwd(path,sizeof (path));
+                    strcat(path,"/");
+                    strcat(path,param[i]);
+                    error=open(path,O_RDONLY);
+                                if(error=-1)
+                                perror("No se pudo abrir el archivo");
+                            }else{
+                                read(error,contenido,1000);
+                                printf("%s ",conteido);
+                            }
+                    close(path);
+                }else{
+                    printf("%d ",st.st_nlink);
+                }
+                struct passwd *uid=getpwuid(st.st_uid);
+                struct group *gid=getgrgid(st.st_gid);
+                printf("(%ld), %s %s %s ",(long)st.st_ino,uid->pw_name,gid->gr_name,convierteModo2(st.st_mode));
             }
-            if(link==1 && strcmp(LetraTF(st.),'l')==0){
-                printf
-            }else{
-                printf("%d ",st.st_nlink);
-            }
-            struct passwd *uid=getpwuid(st.st_uid);
-            struct group *gid=getgrgid(st.st_gid);
-            printf("(%ju), %s %s %s ",(uintmax_t)st.st_ino,uid->pw_name,gid->gr_name,st.convierteModo2(st.st_mode));
-        }
-        printf("%ld %s\n",st.st_size,param[i]);
-        i++;
+            printf("%ld %s\n",st.st_size,param[i]);
+            i++;
         }else{
             perror("No se pudo obtener los datos de ese archivo");
         }
-}
-        return 1;
+    }
+    return 1;
 
 }
 
