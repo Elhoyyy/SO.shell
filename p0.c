@@ -502,10 +502,11 @@ int dolist(char *param[]){
 }
 int dodelete(char *param[]){
     if(param!=NULL){
-        while(param[1]!=NULL){
-            if (remove(param[1]) == -1) {
+        i=1;
+        while(param[i]!=NULL){
+            if (remove(param[i]) == -1) 
                 perror("No se pudo borrar el archivo");
-            }
+            i++;
         }
 
             }else{
