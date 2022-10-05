@@ -1,4 +1,3 @@
-
 #include "headed_linked_list.h"
 #include <stdio.h>
 #include <string.h>
@@ -411,77 +410,81 @@ int docreate (char *param[]){
         if(strcmp(param[1], "-f")==0){
             if(creat(strcat(path,param[2]),0664)==-1){
                 perror("No se pudo crear el archivo");
-                }
-            }else{
+            }
+        }else{
             if(mkdir(strcat(path,param[1]),0755)==-1){
                 perror("No se pudo crear el directorio");
             }
         }
     }else{
-        printf("");
+        docarpeta(param);
     }
     return 1;
 }
 
-int dostats (char *param[]){
-    int i=1;
-    int l=0;
-    int link=0;
-    int acc=0;
+int dostats (char *param[]) {
+    int i = 1;
+    int l = 0;
+    int link = 0;
+    int acc = 0;
 
     struct stat st;
-    while(param!=NULL) {
+    while (param != NULL) {
         if (strcmp(param[i], "-long") == 0) {
-            l=1;
+            l = 1;
         } else if (strcmp(param[i], "-link") == 0) {
-            link=1;
+            link = 1;
         } else if (strcmp(param[i], "-acc") == 0) {
-            acc=1;
+            acc = 1;
         } else break;
         i++;
     }
-    while(param!=NULL){
-        lstat(param[i],&st);
+    while (param != NULL) {
+        lstat(param[i], &st);
         char path[1000];
         int error;
-        char conteido[1000];
-        if(lstat(param[i],&st)!=-1){
-            if (l==1){
-                if(acc==1){
-                    struct tm *acces=localtime(&st.st_atime);
-                    printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
-                }else{
-                    struct tm *mod=localtime(&st.st_mtime);
-                    printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
+        char contenido[1000];
+        if (lstat(param[i], &st) != -1) {
+            if (l == 1) {
+                if (acc == 1) {
+                    struct tm *acces = localtime(&st.st_atime);
+                    printf("%d/%d/%d-%d:%d ", acces->tm_year + 1900, acces->tm_mon + 1, acces->tm_mday, acces->tm_hour,
+                           acces->tm_min);
+                } else {
+                    struct tm *mod = localtime(&st.st_mtime);
+                    printf("%d/%d/%d-%d:%d ", mod->tm_year + 1900, mod->tm_mon + 1, mod->tm_mday, mod->tm_hour,
+                           mod->tm_min);
                 }
-                if(link==1 && (strcmp(LetraTF(st.st_dev), "l") == 0)){
-                    getcwd(path,sizeof (path));
-                    strcat(path,"/");
-                    strcat(path,param[i]);
-                    error=open(path,O_RDONLY);
-                                if(error=-1)
-                                perror("No se pudo abrir el archivo");
-                            }else{
-                                read(error,contenido,1000);
-                                printf("%s ",conteido);
-                            }
-                    close(path);
-                }else{
-                    printf("%d ",st.st_nlink);
+                if (link == 1 && (strcmp(LetraTF(st.st_dev), "l") == 0)) {
+                    getcwd(path, sizeof(path));
+                    strcat(path, "/");
+                    strcat(path, param[i]);
+                    error = open(path, O_RDONLY);
+                    if (error = -1)
+                        perror("No se pudo abrir el archivo");
+                } else {
+                    read(error, contenido, 1000);
+                    printf("%s ", contenido);
                 }
-                struct passwd *uid=getpwuid(st.st_uid);
-                struct group *gid=getgrgid(st.st_gid);
-                printf("(%ld), %s %s %s ",(long)st.st_ino,uid->pw_name,gid->gr_name,convierteModo2(st.st_mode));
+                close(path);
+            } else {
+                printf("%d ", st.st_nlink);
             }
-            printf("%ld %s\n",st.st_size,param[i]);
-            i++;
-        }else{
+            struct passwd *uid = getpwuid(st.st_uid);
+            struct group *gid = getgrgid(st.st_gid);
+            printf("(%ld), %s %s %s ", (long) st.st_ino, uid->pw_name, gid->gr_name, convierteModo2(st.st_mode));
+        }
+        printf("%ld %s\n", st.st_size, param[i]);
+        i++;
+        else{
             perror("No se pudo obtener los datos de ese archivo");
         }
     }
+
     return 1;
 
 }
+
 
 int dolist(char *param[]){
     int i=0;
@@ -498,10 +501,18 @@ int dolist(char *param[]){
     i++;
 }
 int dodelete(char *param[]){
+    if(param!=NULL){
+        while(param[1]!=NULL){
+            if (remove(param[1]) == -1) {
+                perror("No se pudo borrar el archivo");
+            }
+        }
 
-
-
+            }else{
+        docarpeta(param);
+            }
     return 1;
+
 }
 
 int dodeltree(char *param[]){
@@ -509,4 +520,25 @@ int dodeltree(char *param[]){
 
 
     return 1;
+}
+
+char * ConvierteModo (mode_t m, char *permisos)
+{
+    strcpy (permisos,"---------- ");
+
+    permisos[0]=LetraTF(m);
+    if (m&S_IRUSR) permisos[1]='r';    /*propietario*/
+    if (m&S_IWUSR) permisos[2]='w';
+    if (m&S_IXUSR) permisos[3]='x';
+    if (m&S_IRGRP) permisos[4]='r';    /*grupo*/
+    if (m&S_IWGRP) permisos[5]='w';
+    if (m&S_IXGRP) permisos[6]='x';
+    if (m&S_IROTH) permisos[7]='r';    /*resto*/
+    if (m&S_IWOTH) permisos[8]='w';
+    if (m&S_IXOTH) permisos[9]='x';
+    if (m&S_ISUID) permisos[3]='s';    /*setuid, setgid y stickybit*/
+    if (m&S_ISGID) permisos[6]='s';
+    if (m&S_ISVTX) permisos[9]='t';
+
+    return permisos;
 }
