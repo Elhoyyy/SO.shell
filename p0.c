@@ -50,13 +50,7 @@ int main(){
     while ( acabar!=-1 ){
 
         imprimirPrompt();
-        /*
-        if (acabar > 0) {
-            char *cmd = getListaComando(acabar,Lista);
-            strcpy( cadena, cmd);
-        }
-         */
-
+      
         leerEntrada(cadena);
         insertItem(cadena,Lista);
         TrocearCadena(cadena, trozos);
@@ -68,15 +62,6 @@ int main(){
     free (Lista);
 }
 
-/*
-char* getListaComando(int acabar,tList Lista){
-    tPosL p=Lista->next;
-    for(int i=0;i<acabar;i++){
-        p=p->next;
-    }
-    return getChar(p,Lista);
-}
-*/
 const char * LetraTF (mode_t m)
 {
     switch (m&S_IFMT) { /*and bit a bit con los bits de formato,0170000 */
@@ -142,10 +127,10 @@ int ProcesarEntrada(char * trozos[],tList Lista){
 
     }else if(strcmp(param[0], "ayuda")==0) {
         i = doayuda(param);
-    }else if(strcmp(param[0], "stats")==0) {
-        i = dostats(param);
-    }else if(strcmp(param[0], "list")==0) {
-        i = dolist(param);
+    //}else if(strcmp(param[0], "stats")==0) {
+      //  i = dostats(param);
+    //}else if(strcmp(param[0], "list")==0) {
+      //  i = dolist(param);
     }else if(strcmp(param[0], "create")==0) {
         i = docreate(param);
     }else if(strcmp(param[0], "delete")==0){
@@ -337,7 +322,8 @@ int dohist(char* param[],tList Lista){
             deleteList(Lista);
 
         } else {
-            long n= strtol(param[1],LNULL,10);
+
+	    int n = abs(atoi(param[1]));
             tPosL p;
             int counter=0;
             char *cmd;
@@ -351,7 +337,7 @@ int dohist(char* param[],tList Lista){
 
 
                     cmd = getChar(p, Lista);
-                    printf("%s", cmd);
+                    printf("\n%s", cmd);
                     p = p->next;
 
                 }
@@ -421,7 +407,7 @@ int docreate (char *param[]){
     }
     return 1;
 }
-
+/*
 int dostats (char *param[]) {
     int i = 1;
     int l = 0;
@@ -484,8 +470,8 @@ int dostats (char *param[]) {
     return 1;
 
 }
-
-
+*/
+/*
 int dolist(char *param[]){
     int i=0;
 
@@ -500,9 +486,10 @@ int dolist(char *param[]){
     }
     i++;
 }
+*/
 int dodelete(char *param[]){
     if(param!=NULL){
-        i=1;
+        int i=1;
         while(param[i]!=NULL){
             if (remove(param[i]) == -1) 
                 perror("No se pudo borrar el archivo");
