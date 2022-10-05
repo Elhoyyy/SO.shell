@@ -17,7 +17,6 @@ void leerEntrada(char *cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
 int ProcesarEntrada(char *trozos[],tList Lista);
 void imprimirPrompt();
-//ESTO SERÍA EN OTRO MAIN.C
 int doautores(char *param[]);
 int dopid(char *param[]);
 int dohist(char *param[],tList Lista);
@@ -29,7 +28,6 @@ int dobye();
 int doinfosis(char *param[]);
 int doayuda(char *param[]);
 char * infoparametros(char *cmd);
-//char* getListaComando(int acabar,tList LIsta);
 int doayuda(char *param[]);
 int dostats(char *param[]);
 int dolist(char *param[]);
