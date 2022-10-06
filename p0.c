@@ -74,6 +74,28 @@ const char * LetraTF (mode_t m)
     }
 }
 
+char * ConvierteModo2 (mode_t m)
+{
+    static char permisos[12];
+    strcpy (permisos,"---------- ");
+    
+    permisos[0]=LetraTF(m);
+    if (m&S_IRUSR) permisos[1]='r';    /*propietario*/
+    if (m&S_IWUSR) permisos[2]='w';
+    if (m&S_IXUSR) permisos[3]='x';
+    if (m&S_IRGRP) permisos[4]='r';    /*grupo*/
+    if (m&S_IWGRP) permisos[5]='w';
+    if (m&S_IXGRP) permisos[6]='x';
+    if (m&S_IROTH) permisos[7]='r';    /*resto*/
+    if (m&S_IWOTH) permisos[8]='w';
+    if (m&S_IXOTH) permisos[9]='x';
+    if (m&S_ISUID) permisos[3]='s';    /*setuid, setgid y stickybit*/
+    if (m&S_ISGID) permisos[6]='s';
+    if (m&S_ISVTX) permisos[9]='t';
+    
+    return permisos;
+}
+
 
 
 void leerEntrada(char *cadena){
@@ -508,23 +530,3 @@ int dodeltree(char *param[]){
     return 1;
 }
 
-char * ConvierteModo (mode_t m, char *permisos)
-{
-    strcpy (permisos,"---------- ");
-
-    permisos[0]=LetraTF(m);
-    if (m&S_IRUSR) permisos[1]='r';    /*propietario*/
-    if (m&S_IWUSR) permisos[2]='w';
-    if (m&S_IXUSR) permisos[3]='x';
-    if (m&S_IRGRP) permisos[4]='r';    /*grupo*/
-    if (m&S_IWGRP) permisos[5]='w';
-    if (m&S_IXGRP) permisos[6]='x';
-    if (m&S_IROTH) permisos[7]='r';    /*resto*/
-    if (m&S_IWOTH) permisos[8]='w';
-    if (m&S_IXOTH) permisos[9]='x';
-    if (m&S_ISUID) permisos[3]='s';    /*setuid, setgid y stickybit*/
-    if (m&S_ISGID) permisos[6]='s';
-    if (m&S_ISVTX) permisos[9]='t';
-
-    return permisos;
-}
