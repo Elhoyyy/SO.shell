@@ -11,7 +11,7 @@
 typedef struct tNode* tPosL;
 
 typedef struct tNode{
-    char datos;
+    char datos[1000];
     tPosL next;
 }tNode;
 
@@ -20,6 +20,7 @@ typedef tPosL tList;
 void createList(tList* L);
 bool createNode(tPosL* p);
 char* getChar(tPosL p,tList L);
-void printList(tList *L);
-bool insertItem(char d,tList L);
-void deleteAtPosition (tPosL p, tList *L);
+void printList(tList L);
+bool insertItem(char * d,tList L);
+void printn(char* param[],tList L);
+void deleteList(tList L);
