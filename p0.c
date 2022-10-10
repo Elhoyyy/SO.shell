@@ -11,6 +11,8 @@
 #include <fcntl.h>
 #include <pwd.h>
 #include <grp.h>
+#include <dirent.h>
+
 #define N 48
 
 void leerEntrada(char *cadena);
@@ -48,7 +50,7 @@ int main(){
     while ( acabar!=-1 ){
 
         imprimirPrompt();
-      
+
         leerEntrada(cadena);
         insertItem(cadena,Lista);
         TrocearCadena(cadena, trozos);
@@ -60,7 +62,7 @@ int main(){
     free (Lista);
 }
 
-const char * LetraTF (mode_t m)
+char  LetraTF (mode_t m)
 {
     switch (m&S_IFMT) { /*and bit a bit con los bits de formato,0170000 */
         case S_IFSOCK: return 's'; /*socket */
@@ -74,11 +76,11 @@ const char * LetraTF (mode_t m)
     }
 }
 
-char * ConvierteModo2 (mode_t m)
+char *  ConvierteModo2 (mode_t m)
 {
     static char permisos[12];
     strcpy (permisos,"---------- ");
-    
+
     permisos[0]=LetraTF(m);
     if (m&S_IRUSR) permisos[1]='r';    /*propietario*/
     if (m&S_IWUSR) permisos[2]='w';
@@ -92,7 +94,7 @@ char * ConvierteModo2 (mode_t m)
     if (m&S_ISUID) permisos[3]='s';    /*setuid, setgid y stickybit*/
     if (m&S_ISGID) permisos[6]='s';
     if (m&S_ISVTX) permisos[9]='t';
-    
+
     return permisos;
 }
 
@@ -147,10 +149,10 @@ int ProcesarEntrada(char * trozos[],tList Lista){
 
     }else if(strcmp(param[0], "ayuda")==0) {
         i = doayuda(param);
-    //}else if(strcmp(param[0], "stats")==0) {
-      //  i = dostats(param);
-    //}else if(strcmp(param[0], "list")==0) {
-      //  i = dolist(param);
+        //}else if(strcmp(param[0], "stats")==0) {
+        //  i = dostats(param);
+        //}else if(strcmp(param[0], "list")==0) {
+        //  i = dolist(param);
     }else if(strcmp(param[0], "create")==0) {
         i = docreate(param);
     }else if(strcmp(param[0], "delete")==0){
@@ -343,7 +345,7 @@ int dohist(char* param[],tList Lista){
 
         } else {
 
-	    int n = abs(atoi(param[1]));
+            long n = strtol(param[1],NULL,10);
             tPosL p;
             int counter=0;
             char *cmd;
@@ -412,13 +414,13 @@ int docreate (char *param[]){
     char path[1000];
     getcwd(path,sizeof (path));
     strcat(path,"/");
-    if(param!=NULL){
+    if(param[1]!=NULL){
         if(strcmp(param[1], "-f")==0){
             if(creat(strcat(path,param[2]),0664)==-1){
                 perror("No se pudo crear el archivo");
-                }
-            }else{
-            if(mkdir(strcat(path,param[1]),"755")==-1){
+            }
+        }else{
+            if(mkdir(strcat(path,param[1]),0755)==-1){
                 perror("No se pudo crear el directorio");
             }
         }
@@ -427,16 +429,15 @@ int docreate (char *param[]){
     }
     return 1;
 }
-/*
 
 int dostats (char *param[]){
     int i=1;
     int l=0;
     int link=0;
     int acc=0;
-
     struct stat st;
-    while(param!=NULL) {
+    if(param[1]!=NULL){
+    while(param[i]!=NULL) {
         if (strcmp(param[i], "-long") == 0) {
             l=1;
         } else if (strcmp(param[i], "-link") == 0) {
@@ -446,11 +447,8 @@ int dostats (char *param[]){
         } else break;
         i++;
     }
-    while(param!=NULL){
+    while(param[i]!=NULL){
         lstat(param[i],&st);
-        char path[1000];
-        int error;
-        char contenido[1000];
         if(lstat(param[i],&st)!=-1){
             if (l==1){
                 if(acc==1){
@@ -460,24 +458,18 @@ int dostats (char *param[]){
                     struct tm *mod=localtime(&st.st_mtime);
                     printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
                 }
-                if(link==1 && (strcmp(LetraTF(st.st_dev), "l") == 0)){
-                    getcwd(path,sizeof (path));
-                    strcat(path,"/");
-                    strcat(path,param[i]);
-                    error=open(path,O_RDONLY);
-                                if(error=-1){
-                                perror("No se pudo abrir el archivo");
-                            }else{
-                                read(error,contenido,1000);
-                                printf("%s ",contenido);
-                            }
-                    close(path);
+                if(link==1){
+                    char a= LetraTF(st.st_mode);
+                    char * type= &a;
+                    if(strcmp(type,"l")==0){
+                    printf("%lu",st.st_rdev);
                 }else{
-                    printf("%d ",st.st_nlink);
+                    printf("%lu ",st.st_nlink);
                 }
+                    }
                 struct passwd *uid=getpwuid(st.st_uid);
                 struct group *gid=getgrgid(st.st_gid);
-                printf("(%ld), %s %s %s ",(long)st.st_ino,uid->pw_name,gid->gr_name,convierteModo2(st.st_mode));
+                printf("(%ld), %s %s %s ",(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
             }
             printf("%ld %s\n",st.st_size,param[i]);
             i++;
@@ -485,30 +477,84 @@ int dostats (char *param[]){
             perror("No se pudo obtener los datos de ese archivo");
         }
     }
+        }else{
+        docarpeta(param);
+    }
     return 1;
-
 }
-*/
+
 int dodelete(char *param[]){
-    if(param!=NULL){
+    if(param[1]!=NULL){
         int i=1;
         while(param[i]!=NULL){
-            if (remove(param[i]) == -1) 
+            if (remove(param[i]) == -1)
                 perror("No se pudo borrar el archivo");
             i++;
         }
-
-            }else{
+    }else{
         docarpeta(param);
-            }
+    }
     return 1;
 
 }
 
 int dodeltree(char *param[]){
-
-
+    if(param[1]!=NULL){
+        int i=1;
+        while(param[i]!=NULL){
+        /* DIR *dirp;
+         * struct dirent *direntp;
+         * dirp=opendir(param[1]);
+         * if(dirp=NULL)
+         * perror("No se pudo abrir el directorio");
+         * while ((direntp=readdir(dirp))!=NULL){
+                ahora no se como hacer para diferencia entre archivos y directorios
+                if(es un directorio y el directorio es distinto del direcotrio . o directorio ..){
+                char recur[1000]=dirent->d_name  nombre del directorio que esta dentro de del otro directorio
+                strcat(" ",recur); para que asi el nombre del directorio a borrar se pasa como param1
+                char * recursivo=&recursivo; porque a la funcion dodeltree tenemos que pasarle un char *
+                dodeltree(recursivo);
+                }else{
+                remove(dirent->d_name);
+                }
+                }
+                close(dirp);
+                remove(dirp);
+         */
+        i++;
+        }
+    }else{
+        docarpeta(param);
+    }
 
     return 1;
 }
+int dolist(char *param[]){
+    int i=1;
+    int l=0;
+    int link=0;
+    int acc=0;
+    int reca=0;
+    int recb=0;
+    int hid=0;
+    struct stat st;
+    if(param[1]!=NULL){
+        while(param[i]!=NULL) {
+            if (strcmp(param[i], "-long") == 0) {
+                l=1;
+            } else if (strcmp(param[i], "-link") == 0) {
+                link=1;
+            } else if (strcmp(param[i], "-acc") == 0) {
+                acc=1;
+            } else if (strcmp(param[i], "-reca") == 0) {
+                reca=1;
+            } else if (strcmp(param[i], "-recb") == 0) {
+                recb=1;
+            } else if (strcmp(param[i], "-hid") == 0) {
+                hid=1;
+            } else break;
+            i++;
+        }
+}
+    }
 
