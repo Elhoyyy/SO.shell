@@ -451,6 +451,7 @@ int dostats (char *param[]){
         lstat(param[i],&st);
         if(lstat(param[i],&st)!=-1){
             if (l==1){
+                nlink_t lnk=st.st_nlink;
                 if(acc==1){
                     struct tm *acces=localtime(&st.st_atime);
                     printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
@@ -462,11 +463,10 @@ int dostats (char *param[]){
                     char a= LetraTF(st.st_mode);
                     char * type= &a;
                     if(strcmp(type,"l")==0){
-                    printf("%lu",st.st_rdev);
-                }else{
-                    printf("%lu ",st.st_nlink);
-                }
+                        lnk=st.st_rdev;
                     }
+                }
+                printf("%lu",lnk);
                 struct passwd *uid=getpwuid(st.st_uid);
                 struct group *gid=getgrgid(st.st_gid);
                 printf("(%ld), %s %s %s ",(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
