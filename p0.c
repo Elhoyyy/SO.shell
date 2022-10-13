@@ -149,10 +149,10 @@ int ProcesarEntrada(char * trozos[],tList Lista){
 
     }else if(strcmp(param[0], "ayuda")==0) {
         i = doayuda(param);
-        //}else if(strcmp(param[0], "stats")==0) {
-        //  i = dostats(param);
-        //}else if(strcmp(param[0], "list")==0) {
-        //  i = dolist(param);
+        }else if(strcmp(param[0], "stats")==0) {
+          i = dostats(param);
+        }else if(strcmp(param[0], "list")==0) {
+          i = dolist(param);
     }else if(strcmp(param[0], "create")==0) {
         i = docreate(param);
     }else if(strcmp(param[0], "delete")==0){
@@ -451,7 +451,7 @@ int dostats (char *param[]){
         lstat(param[i],&st);
         if(lstat(param[i],&st)!=-1){
             if (l==1){
-                nlink_t lnk=st.st_nlink;
+                nlink_t link=st.st_nlink;
                 if(acc==1){
                     struct tm *acces=localtime(&st.st_atime);
                     printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
@@ -463,7 +463,7 @@ int dostats (char *param[]){
                     char a= LetraTF(st.st_mode);
                     char * type= &a;
                     if(strcmp(type,"l")==0){
-                        lnk=st.st_rdev;
+                        link=st.st_rdev;
                     }
                 }
                 printf("%lu",lnk);
@@ -529,6 +529,7 @@ int dodeltree(char *param[]){
 
     return 1;
 }
+
 int dolist(char *param[]){
     int i=1;
     int l=0;
@@ -537,7 +538,8 @@ int dolist(char *param[]){
     int reca=0;
     int recb=0;
     int hid=0;
-    DIR * dir;
+    struct dirent *d;
+    DIR  *dir;
     struct stat st;
     if(param[1]!=NULL){
         while(param[i]!=NULL) {
@@ -557,42 +559,63 @@ int dolist(char *param[]){
             i++;
         }
         if (param[i]!=NULL) {
-            printf("*********%s", param[i]);
-            while (dir=readdir(param[i])!=NULL) {
-                printf("%s\n", dir->d_name);
-                lstat(param[i], &st);
-                if (lstat(param[i], &st) != -1) {
-                    if (l == 1) {
-                        if (acc == 1) {
-                            struct tm *acces = localtime(&st.st_atime);
-                            printf("%d/%d/%d-%d:%d ", acces->tm_year + 1900, acces->tm_mon + 1, acces->tm_mday,
-                                   acces->tm_hour, acces->tm_min);
+            dir = opendir(param[i]);
+            if (dir != NULL) {
+
+                printf("*********%s\n", param[i]);
+                while ((d = readdir(dir)) != NULL) {
+                    lstat(param[i], &st);
+                    if (lstat(param[i], &st) != -1) {
+
+                                if (l == 1) {
+                                    if (acc == 1) {
+                                        struct tm *acces = localtime(&st.st_atime);
+                                        printf("%d/%d/%d-%d:%d ", acces->tm_year + 1900, acces->tm_mon + 1,
+                                               acces->tm_mday,
+                                               acces->tm_hour, acces->tm_min);
+                                    } else {
+                                        struct tm *mod = localtime(&st.st_mtime);
+                                        printf("%d/%d/%d-%d:%d ", mod->tm_year + 1900, mod->tm_mon + 1, mod->tm_mday,
+                                               mod->tm_hour,
+                                               mod->tm_min);
+                                    }
+                                    if (link == 1) {
+                                        char a = LetraTF(st.st_mode);
+                                        char *type = &a;
+                                        if (strcmp(type, "l") == 0) {
+                                            link = st.st_rdev;
+                                        }
+                                    }
+                                    printf("%d", link);
+                                    struct passwd *uid = getpwuid(st.st_uid);
+                                    struct group *gid = getgrgid(st.st_gid);
+                                    printf("(%ld), %s %s %s ", (long) st.st_ino, uid->pw_name, gid->gr_name,
+                                           ConvierteModo2(st.st_mode));
+                                }if (hid == 1) {
+                            printf("%ld %s\n", st.st_size, d->d_name);
+
+
                         } else {
-                            struct tm *mod = localtime(&st.st_mtime);
-                            printf("%d/%d/%d-%d:%d ", mod->tm_year + 1900, mod->tm_mon + 1, mod->tm_mday, mod->tm_hour,
-                                   mod->tm_min);
-                        }
-                        if (link == 1) {
-                            char a = LetraTF(st.st_mode);
-                            char *type = &a;
-                            if (strcmp(type, "l") == 0) {
-                                lnk = st.st_rdev;
+                            if (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0) {
+
+                                printf("%ld %s\n", st.st_size, d->d_name);
+                                i++;
                             }
                         }
-                        printf("%lu", lnk);
-                        struct passwd *uid = getpwuid(st.st_uid);
-                        struct group *gid = getgrgid(st.st_gid);
-                        printf("(%ld), %s %s %s ", (long) st.st_ino, uid->pw_name, gid->gr_name,
-                               ConvierteModo2(st.st_mode));
-                    }
 
-                    printf("%ld %s\n",st.st_size,param[i]);
-                    i++;
+                    }
                 }
+
+                closedir(dir);
+            }else {
+                perror ("Este directorio no existe\n");
             }
+        }else {
+            perror("No se puedo abrir el directorio\n");
         }
     }else{
         docarpeta(param);
     }
+    return 1;
 }
 
