@@ -497,38 +497,35 @@ int dodelete(char *param[]){
     return 1;
 
 }
-
 int dodeltree(char *param[]){
     if(param[1]!=NULL){
         int i=1;
         while(param[i]!=NULL){
-        /* DIR *dirp;
-         * struct dirent *direntp;
-         * dirp=opendir(param[1]);
-         * if(dirp=NULL)
-         * perror("No se pudo abrir el directorio");
-         * while ((direntp=readdir(dirp))!=NULL){
-                ahora no se como hacer para diferencia entre archivos y directorios
-                if(es un directorio y el directorio es distinto del direcotrio . o directorio ..){
-                char recur[1000]=dirent->d_name  nombre del directorio que esta dentro de del otro directorio
-                strcat(" ",recur); para que asi el nombre del directorio a borrar se pasa como param1
-                char * recursivo=&recursivo; porque a la funcion dodeltree tenemos que pasarle un char *
-                dodeltree(recursivo);
+         DIR *dirp;
+         struct dirent *direntp;
+          dirp=opendir(param[i]);
+          if(dirp==NULL)
+          perror("No se pudo abrir el directorio");
+          while ((direntp=readdir(dirp))!=NULL){
+                char a= LetraTF(direntp->d_type);
+                char * type= &a;
+                if(((strcmp("d",type))==0)&&((strcmp(".",direntp->d_name))!=0)&&((strcmp("..",direntp->d_name))!=0)){
+                char *recursivo;
+                strcat(recursivo," ");
+                strcat(recursivo,direntp->d_name);
+                dodeltree(&recursivo);
                 }else{
-                remove(dirent->d_name);
+                remove(direntp->d_name);
                 }
                 }
-                close(dirp);
-                remove(dirp);
-         */
+                closedir(dirp);
+                remove(param[i]);
+
         i++;
         }
     }else{
         docarpeta(param);
     }
-
-    return 1;
-}
 
 int dolist(char *param[]){
     int i=1;
