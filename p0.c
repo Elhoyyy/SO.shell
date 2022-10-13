@@ -537,6 +537,7 @@ int dolist(char *param[]){
     int reca=0;
     int recb=0;
     int hid=0;
+    DIR * dir;
     struct stat st;
     if(param[1]!=NULL){
         while(param[i]!=NULL) {
@@ -555,6 +556,43 @@ int dolist(char *param[]){
             } else break;
             i++;
         }
-}
+        if (param[i]!=NULL) {
+            printf("*********%s", param[i]);
+            while (dir=readdir(param[i])!=NULL) {
+                printf("%s\n", dir->d_name);
+                lstat(param[i], &st);
+                if (lstat(param[i], &st) != -1) {
+                    if (l == 1) {
+                        if (acc == 1) {
+                            struct tm *acces = localtime(&st.st_atime);
+                            printf("%d/%d/%d-%d:%d ", acces->tm_year + 1900, acces->tm_mon + 1, acces->tm_mday,
+                                   acces->tm_hour, acces->tm_min);
+                        } else {
+                            struct tm *mod = localtime(&st.st_mtime);
+                            printf("%d/%d/%d-%d:%d ", mod->tm_year + 1900, mod->tm_mon + 1, mod->tm_mday, mod->tm_hour,
+                                   mod->tm_min);
+                        }
+                        if (link == 1) {
+                            char a = LetraTF(st.st_mode);
+                            char *type = &a;
+                            if (strcmp(type, "l") == 0) {
+                                lnk = st.st_rdev;
+                            }
+                        }
+                        printf("%lu", lnk);
+                        struct passwd *uid = getpwuid(st.st_uid);
+                        struct group *gid = getgrgid(st.st_gid);
+                        printf("(%ld), %s %s %s ", (long) st.st_ino, uid->pw_name, gid->gr_name,
+                               ConvierteModo2(st.st_mode));
+                    }
+
+                    printf("%ld %s\n",st.st_size,param[i]);
+                    i++;
+                }
+            }
+        }
+    }else{
+        docarpeta(param);
     }
+}
 
