@@ -501,31 +501,22 @@ int dodeltree(char *param[]){
     if(param[1]!=NULL){
         int i=1;
         while(param[i]!=NULL){
-         DIR *dirp;
-         struct dirent *direntp;
-          dirp=opendir(param[i]);
-          if(dirp==NULL)
-          perror("No se pudo abrir el directorio");
-          while ((direntp=readdir(dirp))!=NULL){
-                char a= LetraTF(direntp->d_type);
-                char * type= &a;
-                if(((strcmp("d",type))==0)&&((strcmp(".",direntp->d_name))!=0)&&((strcmp("..",direntp->d_name))!=0)){
-                char *recursivo;
-                strcat(recursivo," ");
-                strcat(recursivo,direntp->d_name);
-                dodeltree(&recursivo);
-                }else{
-                remove(direntp->d_name);
-                }
-                }
-                closedir(dirp);
+            struct stat st;
+            struct dirent *archivo;
+            lstat(param[i],&st);
+            if('d'== LetraTF(st.st_mode)){
+                borrar_recursivo(opendir(param[i]),  param[i]);
+            }else{
                 remove(param[i]);
+            }
 
-        i++;
+            i++;
         }
     }else{
         docarpeta(param);
     }
+    return 1;
+}
 
 int dolist(char *param[]){
     int i=1;
@@ -614,5 +605,22 @@ int dolist(char *param[]){
         docarpeta(param);
     }
     return 1;
+}
+
+void borrar_recursivo(DIR *actual,char** param[]){
+    struct dirent *archivo;
+    DIR *dir;
+    struct stat st;
+    while((archivo= readdir(actual))){
+        lstat(archivo->d_name,&st);
+        if(('d'== LetraTF(st.st_mode))&&((strcmp(".",archivo->d_name))!=0)&&((strcmp("..",archivo->d_name))!=0)){
+            dir=opendir(archivo->d_name);
+            borrar_recursivo(dir, (char *) archivo->d_name);
+            closedir(dir);
+            remove((const char *) &param);
+        }else{
+            remove(archivo->d_name);
+        }
+    }
 }
 
