@@ -12,6 +12,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <dirent.h>
+#include <limits.h>
 
 #define N 48
 
@@ -435,49 +436,60 @@ int dostats (char *param[]){
     int l=0;
     int link=0;
     int acc=0;
+    int symb=0;
     struct stat st;
     if(param[1]!=NULL){
-    while(param[i]!=NULL) {
-        if (strcmp(param[i], "-long") == 0) {
-            l=1;
-        } else if (strcmp(param[i], "-link") == 0) {
-            link=1;
-        } else if (strcmp(param[i], "-acc") == 0) {
-            acc=1;
-        } else break;
-        i++;
-    }
-    while(param[i]!=NULL){
-        lstat(param[i],&st);
-        if(lstat(param[i],&st)!=-1){
-            if (l==1){
-                nlink_t link=st.st_nlink;
-                if(acc==1){
-                    struct tm *acces=localtime(&st.st_atime);
-                    printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
-                }else{
-                    struct tm *mod=localtime(&st.st_mtime);
-                    printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
-                }
-                if(link==1){
-                    char a= LetraTF(st.st_mode);
-                    char * type= &a;
-                    if(strcmp(type,"l")==0){
-                        link=st.st_rdev;
-                    }
-                }
-                printf("%lu",lnk);
-                struct passwd *uid=getpwuid(st.st_uid);
-                struct group *gid=getgrgid(st.st_gid);
-                printf("(%ld), %s %s %s ",(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
-            }
-            printf("%ld %s\n",st.st_size,param[i]);
+        while(param[i]!=NULL) {
+            if (strcmp(param[i], "-long") == 0) {
+                l=1;
+            } else if (strcmp(param[i], "-link") == 0) {
+                link=1;
+            } else if (strcmp(param[i], "-acc") == 0) {
+                acc=1;
+            } else break;
             i++;
-        }else{
-            perror("No se pudo obtener los datos de ese archivo");
         }
-    }
-        }else{
+        while(param[i]!=NULL){
+            lstat(param[i],&st);
+            if(lstat(param[i],&st)!=-1){
+                if (l==1){
+                    if(acc==1){
+                        struct tm *acces=localtime(&st.st_atime);
+                        printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
+                    }else{
+                        struct tm *mod=localtime(&st.st_mtime);
+                        printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
+                    }
+                    if((link==1)&&('l'== LetraTF(st.st_mode))){
+                            symb=1;
+                        }
+                    struct passwd *uid=getpwuid(st.st_uid);
+                    struct group *gid=getgrgid(st.st_gid);
+                    printf("%lu (%ld) %s %s %s ",st.st_nlink,(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
+                }
+                if(symb==1){
+                printf("%ld %s->",st.st_size,param[i]);
+                    char buf[PATH_MAX];
+                    char *symbolic=realpath(param[i],buf);
+                    int j;
+                    char *trozo=strtok(symbolic,"/");
+                    char* ultimo;
+                        while(trozo!=NULL){
+                            ultimo=trozo;
+                            trozo= strtok(NULL,"/");
+                            j++;
+                        }
+                printf("%s\n",ultimo);
+                i++;
+                }else{
+                    printf("%ld %s\n",st.st_size,param[i]);
+                    i++;
+                }
+            }else{
+                perror("No se pudo obtener los datos de ese archivo");
+            }
+        }
+    }else{
         docarpeta(param);
     }
     return 1;
