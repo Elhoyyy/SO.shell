@@ -510,18 +510,17 @@ int dodelete(char *param[]){
 
 }
 int dodeltree(char *param[]){
-    if(param[1]!=NULL){
-        int i=1;
-        while(param[i]!=NULL){
-            struct stat st;
-            struct dirent *archivo;
+    int i=1;
+    struct stat st;
+    if(param[i]!=NULL){
+        while(param[i]!=NULL) {
             lstat(param[i],&st);
-            if('d'== LetraTF(st.st_mode)){
-                borrar_recursivo(opendir(param[i]),  param[i]);
-            }else{
-                remove(param[i]);
+            if('d'== LetraTF(st.st_mode)) {
+                borrar_recursivo(param[i]);
             }
-
+            else if (remove(param[i])==-1){
+                perror("ERROR");
+            }
             i++;
         }
     }else{
@@ -619,20 +618,33 @@ int dolist(char *param[]){
     return 1;
 }
 
-void borrar_recursivo(DIR *actual,char** param[]){
+
+void borrar_recursivo(char *dir) {
     struct dirent *archivo;
-    DIR *dir;
     struct stat st;
-    while((archivo= readdir(actual))){
-        lstat(archivo->d_name,&st);
-        if(('d'== LetraTF(st.st_mode))&&((strcmp(".",archivo->d_name))!=0)&&((strcmp("..",archivo->d_name))!=0)){
-            dir=opendir(archivo->d_name);
-            borrar_recursivo(dir, (char *) archivo->d_name);
-            closedir(dir);
-            remove((const char *) &param);
-        }else{
-            remove(archivo->d_name);
+    char aux[1000];
+    DIR *d;
+    lstat(dir, &st);
+
+    if ((d=opendir(dir)) != NULL) {
+        while ((archivo = readdir(d)) != NULL) {
+            strcpy(aux, dir);
+            strcat(strcat(aux, "/"), archivo->d_name);
+
+            if (strcmp(archivo->d_name, ".") == 0 || strcmp(archivo->d_name, "..") == 0) continue;
+
+            if ('d' == LetraTF(st.st_mode)) {
+                borrar_recursivo(aux);
+
+            }
+
+            if (remove(aux)) {
+            }
         }
+        closedir(d);
     }
+
+
 }
+
 
