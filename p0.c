@@ -569,54 +569,51 @@ int dolist(char *param[]){
 
                 printf("*********%s\n", param[i]);
                 while ((d = readdir(dir)) != NULL) {
-                    lstat(param[i], &st);
-                    if (lstat(param[i], &st) != -1) {
-
-                        if (l == 1) {
-                            if (acc == 1) {
-                                struct tm *acces = localtime(&st.st_atime);
-                                printf("%d/%d/%d-%d:%d ", acces->tm_year + 1900, acces->tm_mon + 1,
-                                       acces->tm_mday,
-                                       acces->tm_hour, acces->tm_min);
-                            } else {
-                                struct tm *mod = localtime(&st.st_mtime);
-                                printf("%d/%d/%d-%d:%d ", mod->tm_year + 1900, mod->tm_mon + 1, mod->tm_mday,
-                                       mod->tm_hour,
-                                       mod->tm_min);
-                            }
-                            if (link == 1) {
-                                char a = LetraTF(st.st_mode);
-                                char *type = &a;
-                                if (strcmp(type, "l") == 0) {
-                                    link = st.st_rdev;
+                    lstat(d->d_name, &st);
+                    if (lstat(d->d_name, &st) != -1) {
+                        int symb=0;
+                        if(hid==1||'.'!=d->d_name[0])
+                                if (l==1){
+                                    if(acc==1){
+                                        struct tm *acces=localtime(&st.st_atime);
+                                        printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
+                                    }else{
+                                        struct tm *mod=localtime(&st.st_mtime);
+                                        printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
+                                    }
+                                    if((link==1)&&('l'== LetraTF(st.st_mode))){
+                                        symb=1;
+                                    }
+                                    struct passwd *uid=getpwuid(st.st_uid);
+                                    struct group *gid=getgrgid(st.st_gid);
+                                    printf("%lu (%ld) %s %s %s ",st.st_nlink,(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
+                                if(symb==1){
+                                    printf("%ld %s->",st.st_size,param[i]);
+                                    char buf[PATH_MAX];
+                                    char *symbolic=realpath(param[i],buf);
+                                    int j;
+                                    char *trozo=strtok(symbolic,"/");
+                                    char* ultimo;
+                                    while(trozo!=NULL){
+                                        ultimo=trozo;
+                                        trozo= strtok(NULL,"/");
+                                        j++;
+                                    }
+                                    printf("%s\n",ultimo);
+                                    i++;
+                                }else{
+                                    printf("%ld %s\n",st.st_size,param[i]);
+                                    i++;
                                 }
-                            }
-                            printf("%d", link);
-                            struct passwd *uid = getpwuid(st.st_uid);
-                            struct group *gid = getgrgid(st.st_gid);
-                            printf("(%ld), %s %s %s ", (long) st.st_ino, uid->pw_name, gid->gr_name,
-                                   ConvierteModo2(st.st_mode));
-                        }if (hid == 1) {
-                            printf("%ld %s\n", st.st_size, d->d_name);
-
-
-                        } else {
-                            if (strcmp(d->d_name, ".") != 0 && strcmp(d->d_name, "..") != 0) {
-
-                                printf("%ld %s\n", st.st_size, d->d_name);
-                                i++;
+                                }
+                            }else{
+                                perror("No se pudo obtener los datos de ese archivo");
                             }
                         }
-
-                    }
-                }
-
                 closedir(dir);
-            }else {
-                perror ("Este directorio no existe\n");
-            }
         }else {
             perror("No se puedo abrir el directorio\n");
+            }
         }
     }else{
         docarpeta(param);
