@@ -277,12 +277,13 @@ char * infoparametros(char * cmd){
 
 
 
+    
     int i;
-    for (i=0; i<16; i++)
+    for (i=0; i<16; i++){
         if (strcmp(V[i].cmd, cmd) ==0)
-            return V[i].msg;
-    if(i>=16)
+            return V[i].msg;}
         return "";
+	
 
 }
 
