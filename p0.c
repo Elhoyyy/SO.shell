@@ -419,17 +419,14 @@ int docreate (char *param[]){
     getcwd(path,sizeof (path));
     strcat(path,"/");
     if(param[1]!=NULL) {
-        while (param[i] != NULL) {
-            if (strcmp(param[1], "-f") == 0) {
-                if (creat(strcat(path, param[++i]), 0664) == -1) {
-                    perror("No se pudo crear el archivo");
-                }
-            } else {
-                if (mkdir(strcat(path, param[i]), 0755) == -1) {
-                    perror("No se pudo crear el directorio");
-                }
+        if (strcmp(param[1], "-f") == 0) {
+            if (creat(strcat(path, param[2]), 0664) == -1) {
+                perror("No se pudo crear el archivo");
             }
-            i++;
+        } else {
+            if (mkdir(strcat(path, param[1]), 0755) == -1) {
+                perror("No se pudo crear el directorio");
+            }
         }
     }else{
         docarpeta(param);
