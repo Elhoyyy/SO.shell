@@ -39,6 +39,8 @@ int dodeltree(char *param[]);
 int docreate(char *param[]);
 int docomando (char *param[], tList Lista);
 void borrar_recursivo(char * dir);
+void ListarDirectorio(char *dir,int hid,int l,int acc,int link);
+void procesardirectorioA(char *dir,int hid,int l,int acc,int link);
 
 
 int main(){
@@ -562,59 +564,14 @@ int dolist(char *param[]){
             i++;
         }
         if (param[i]!=NULL) {
-            dir = opendir(param[i]);
-            if (dir != NULL) {
-
-                printf("*********%s\n", param[i]);
-                while ((d = readdir(dir)) != NULL) {
-                    lstat(d->d_name, &st);
-                    if (lstat(d->d_name, &st) != -1) {
-                        int symb=0;
-                        if(hid==1||'.'!=d->d_name[0])
-                                if (l==1){
-                                    if(acc==1){
-                                        struct tm *acces=localtime(&st.st_atime);
-                                        printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
-                                    }else{
-                                        struct tm *mod=localtime(&st.st_mtime);
-                                        printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
-                                    }
-                                    if((link==1)&&('l'== LetraTF(st.st_mode))){
-                                        symb=1;
-                                    }
-                                    struct passwd *uid=getpwuid(st.st_uid);
-                                    struct group *gid=getgrgid(st.st_gid);
-                                    printf("%lu (%ld) %s %s %s ",st.st_nlink,(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
-                                if(symb==1){
-                                    printf("%ld %s->",st.st_size,param[i]);
-                                    char buf[PATH_MAX];
-                                    char *symbolic=realpath(param[i],buf);
-                                    int j;
-                                    char *trozo=strtok(symbolic,"/");
-                                    char* ultimo;
-                                    while(trozo!=NULL){
-                                        ultimo=trozo;
-                                        trozo= strtok(NULL,"/");
-                                        j++;
-                                    }
-                                    printf("%s\n",ultimo);
-                                    i++;
-                                }else{
-                                    printf("%ld %s\n",st.st_size,param[i]);
-                                    i++;
-                                }
-                                }
-                            }else{
-                                perror("No se pudo obtener los datos de ese archivo");
-                            }
-                        }
-                closedir(dir);
-        }else {
-            perror("No se puedo abrir el directorio\n");
+            if(reca==1){
+                procesardirectorioA(param[i],hid,l,acc,link);
+            }else if(recb==1){
+                //procesardirectorioA()
+            }else{
+                ListarDirectorio(param[i],hid,l,acc,link);
             }
         }
-    }else{
-        docarpeta(param);
     }
     return 1;
 }
@@ -651,7 +608,77 @@ void borrar_recursivo(char *dir) {
 
 
 }
+    void ListarDirectorio(char *dir,int hid,int l,int acc,int link){
+        struct dirent *archivo;
+        struct stat st;
+        char aux[1000];
+        DIR *d;
 
+        if ((d=opendir(dir)) != NULL) {
+            printf("*********%s\n", dir);
+            while ((archivo = readdir(d)) != NULL) {
+                strcpy(aux, dir);
+                strcat(strcat(aux, "/"), archivo->d_name);
+                lstat(aux, &st);
+                if(hid==1||archivo->d_name[0]!='.'){
+                    int symb=0;
+                    if (l==1){
+                        if(acc==1){
+                            struct tm *acces=localtime(&st.st_atime);
+                            printf("%d/%d/%d-%d:%d ",acces->tm_year+1900,acces->tm_mon+1,acces->tm_mday,acces->tm_hour,acces->tm_min);
+                        }else{
+                            struct tm *mod=localtime(&st.st_mtime);
+                            printf("%d/%d/%d-%d:%d ",mod->tm_year+1900,mod->tm_mon+1,mod->tm_mday,mod->tm_hour,mod->tm_min);
+                        }
+                        if((link==1)&&('l'== LetraTF(st.st_mode))){
+                            symb=1;
+                        }
+                        struct passwd *uid=getpwuid(st.st_uid);
+                        struct group *gid=getgrgid(st.st_gid);
+                        printf("%lu (%ld) %s %s %s ",st.st_nlink,(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
+                    }
+                    if(symb==1){
+                        printf("%ld %s->",st.st_size,archivo->d_name);
+                        char buf[PATH_MAX];
+                        char *symbolic=realpath(archivo->d_name,buf);
+                        int j;
+                        char *trozo=strtok(symbolic,"/");
+                        char* ultimo;
+                        while(trozo!=NULL){
+                            ultimo=trozo;
+                            trozo= strtok(NULL,"/");
+                            j++;
+                        }
+                        printf("%s\n",ultimo);
+                    }else{
+                        printf("%ld %s\n",st.st_size,archivo->d_name);
+                    }
+                }
+                }
+            closedir(d);
+    }
+        }
+
+        void procesardirectorioA(char *dir,int hid,int l,int acc,int link){
+            struct stat st;
+            ListarDirectorio(dir,hid,l,acc,link);
+            struct dirent *archivo;
+            char aux[1000];
+            DIR *d;
+            lstat(dir, &st);
+
+            if ((d=opendir(dir)) != NULL) {
+                while ((archivo = readdir(d)) != NULL) {
+                    strcpy(aux, dir);
+                    strcat(strcat(aux, "/"), archivo->d_name);
+                    if (strcmp(archivo->d_name, ".") == 0 || strcmp(archivo->d_name, "..") == 0) continue;
+
+                    if ('d' == LetraTF(st.st_mode)) {
+                        procesardirectorioA(aux,hid,l,acc,link);
+                    }
+                }
+            }
+        }
 
 
 
