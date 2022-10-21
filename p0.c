@@ -473,23 +473,16 @@ int dostats (char *param[]){
                     struct group *gid=getgrgid(st.st_gid);
                     printf("%lu (%ld) %s %s %s ",st.st_nlink,(long)st.st_ino,uid->pw_name,gid->gr_name,ConvierteModo2(st.st_mode));
                 }
-                if(symb==1){
+               if(symb==1){
                     printf("%ld %s->",st.st_size,param[i]);
                     char buf[PATH_MAX];
-                    char *symbolic=realpath(param[i],buf);
-                    int j;
-                    char *trozo=strtok(symbolic,"/");
-                    char* ultimo;
-                    while(trozo!=NULL){
-                        ultimo=trozo;
-                        trozo= strtok(NULL,"/");
-                        j++;
-                    }
-                    printf("%s\n",ultimo);
+                    realpath(param[i],buf);
+                    printf("%s\n",buf);
                     i++;
                 }else{
                     printf("%ld %s\n",st.st_size,param[i]);
                     i++;
+                
                 }
             }else{
                 perror("No se pudo obtener los datos de ese archivo");
@@ -636,22 +629,14 @@ void borrar_recursivo(char *dir) {
                         printf("%lu (%ld) %s %s %s ", st.st_nlink, (long) st.st_ino, uid->pw_name, gid->gr_name,
                                ConvierteModo2(st.st_mode));
                     }
-                    if (symb == 1) {
-                        printf("%ld %s->", st.st_size, archivo->d_name);
-                        char buf[PATH_MAX];
-                        char *symbolic = realpath(archivo->d_name, buf);
-                        int j;
-                        char *trozo = strtok(symbolic, "/");
-                        char *ultimo;
-                        while (trozo != NULL) {
-                            ultimo = trozo;
-                            trozo = strtok(NULL, "/");
-                            j++;
-                        }
-                        printf("%s\n", ultimo);
-                    } else {
-                        printf("%ld %s\n", st.st_size, archivo->d_name);
-                    }
+                   if (symb == 1) {
+                    printf("%ld %s->", st.st_size, archivo->d_name);
+                    char buf[PATH_MAX];
+                    realpath(archivo->d_name, buf);
+                    printf("%s\n", buf);
+                } else {
+                    printf("%ld %s\n", st.st_size, archivo->d_name);
+			}   
                 }
             }
             closedir(d);
