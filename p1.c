@@ -7,6 +7,7 @@ DATE: 20/10/2022
 */
 
 #include "headed_linked_list.h"
+#include "headed_linked_memorylist.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -27,7 +28,9 @@ DATE: 20/10/2022
 
 #define N 48
 #define TAMANO 2048
-
+#define MALLOC 1
+#define MMAP 2
+#define SHARED 3
 
 void leerEntrada(char *cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
@@ -69,8 +72,10 @@ int main(){
     int acabar=0;
     char cadena[N] ;
     char *trozos[N/2];
-    tList Lista;
+    tList Lista, ListaMemoria;
     createList(&Lista);
+    createList(&ListaMemoria);
+
 
 
     while ( acabar!=-1 ){
@@ -515,6 +520,7 @@ int dostats (char *param[]){
     int l=0;
     int link=0;
     int acc=0;
+    char string[20];
     struct stat st;
     if(param[1]!=NULL){
         while(param[i]!=NULL) {
@@ -548,7 +554,8 @@ int dostats (char *param[]){
                         printf("%lu (%ld) %s %s %s ", st.st_nlink, (long) st.st_ino, uid->pw_name, gid->gr_name,
                                ConvierteModo2(st.st_mode));
                     }else{
-                        printf("%lu (%ld) %d %d %s ", st.st_nlink, (long) st.st_ino, st.st_uid, st.st_gid,
+                        printf("%lu (%ld) %s %d %s ", st.st_nlink, (long) st.st_ino, itoa(st.st_ino, string, 10)
+                        , st.st_gid,
                                ConvierteModo2(st.st_mode));
                     }
                 }
@@ -1023,29 +1030,5 @@ void Do_pmap (void) /*sin argumentos*/
     }
     waitpid (pid,NULL,0);
 }
-
-
-/*struct malloc_t{
-	void *address;
-	size_t tam;
-	time_t creationTime;
-	};
-
-struct mmap_t {
-	void *address;
-	time_t creationTime;
-	char parms[4];
-	char fich[256];
-	int id;
-	};
-
-struct shared_t{
-	void *address;
-	size_t tam;
-	time_t creationTime;
-};
-*/
-
-
 
 
