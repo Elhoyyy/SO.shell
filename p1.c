@@ -28,13 +28,11 @@ DATE: 20/10/2022
 
 #define N 48
 #define TAMANO 2048
-#define MALLOC 1
-#define MMAP 2
-#define SHARED 3
+
 
 void leerEntrada(char *cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
-int ProcesarEntrada(char *trozos[],tList Lista);
+int ProcesarEntrada(char *trozos[],tList Lista,MemoryList Listamemoria);
 void imprimirPrompt();
 int doautores(char *param[]);
 int dopid(char *param[]);
@@ -53,9 +51,9 @@ int dolist(char *param[]);
 int dodelete(char *param[]);
 int dodeltree(char *param[]);
 int docreate(char *param[]);
-int docomando (char *param[], tList Lista);
-int doallocate(char *param[]);
-int dodeallocate(char *param[]);
+int docomando (char *param[], tList Lista,MemoryList Listamemoria);
+int doallocate(char *param[],MemoryList Listamemoria);
+int dodeallocate(char *param[],MemoryList Listamemoria);
 int doinout(char *param[]);
 int domemfill(char *param[]);
 int domemory(char *param[]);
@@ -66,16 +64,18 @@ int dorecurse(char *param[]);
 void borrar_recursivo(char * dir);
 void ListarDirectorio(char *dir,int hid,int l,int acc,int link);
 void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca,int recb);
+void do_AllocateMalloc(MemoryList listaMemoria,long tamano);
+void printListaMememoria(MemoryList L, int tipo);
 
 
 int main(){
     int acabar=0;
     char cadena[N] ;
     char *trozos[N/2];
-    tList Lista, ListaMemoria;
+    tList Lista;
     createList(&Lista);
-    createList(&ListaMemoria);
-
+    MemoryList Listamemoria;
+    createMemoryList(&Listamemoria);
 
 
     while ( acabar!=-1 ){
@@ -85,7 +85,7 @@ int main(){
         leerEntrada(cadena);
         insertItem(cadena,Lista);
         TrocearCadena(cadena, trozos);
-        acabar=ProcesarEntrada(trozos,Lista);
+        acabar=ProcesarEntrada(trozos,Lista,Listamemoria);
 
     }
 
@@ -151,7 +151,7 @@ void imprimirPrompt(){
     printf("$");
 }
 
-int ProcesarEntrada(char * trozos[],tList Lista){
+int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
     char **param=trozos;
     int i=0;
     if (param[0]==NULL){return i;}
@@ -166,7 +166,7 @@ int ProcesarEntrada(char * trozos[],tList Lista){
     }else if(strcmp(param[0], "hist")==0){
         i=dohist(param,Lista);
     }else if(strcmp(param[0], "comando")==0){
-        i=docomando(param,Lista);
+        i=docomando(param,Lista,Listamemoria);
     }else if(strcmp(param[0], "salir")==0){
         i=dosalir();
     }else if(strcmp(param[0], "exit")==0){
@@ -195,10 +195,10 @@ int ProcesarEntrada(char * trozos[],tList Lista){
         i=dodeltree(param);
 
     }else if(strcmp(param[0], "allocate")==0){
-        i=doallocate(param);
+        i=doallocate(param,Listamemoria);
 
     }else if(strcmp(param[0], "deallocate")==0){
-        i=dodeallocate(param);
+        i=dodeallocate(param,Listamemoria);
 
     }else if(strcmp(param[0], "i-o")==0){
         i=doinout(param);
@@ -461,7 +461,7 @@ int dohist(char* param[],tList Lista){
     return 1;
 }
 
-int docomando (char * param[], tList Lista){
+int docomando (char * param[], tList Lista,MemoryList Listamemoria){
     if(param[1]!=NULL){
         long n= strtol(param[1],LNULL,10);
         tPosL p;
@@ -479,7 +479,7 @@ int docomando (char * param[], tList Lista){
 
                     strcpy(cmd,getChar(p, Lista));
                     TrocearCadena(cmd, trozos2);
-                    ProcesarEntrada(trozos2,Lista);
+                    ProcesarEntrada(trozos2,Lista,Listamemoria);
                     break;
                 }
                 p = p->next;
@@ -520,7 +520,6 @@ int dostats (char *param[]){
     int l=0;
     int link=0;
     int acc=0;
-    char string[20];
     struct stat st;
     if(param[1]!=NULL){
         while(param[i]!=NULL) {
@@ -554,8 +553,7 @@ int dostats (char *param[]){
                         printf("%lu (%ld) %s %s %s ", st.st_nlink, (long) st.st_ino, uid->pw_name, gid->gr_name,
                                ConvierteModo2(st.st_mode));
                     }else{
-                        printf("%lu (%ld) %s %d %s ", st.st_nlink, (long) st.st_ino, itoa(st.st_ino, string, 10)
-                        , st.st_gid,
+                        printf("%lu (%ld) %d %d %s ", st.st_nlink, (long) st.st_ino, st.st_uid, st.st_gid,
                                ConvierteModo2(st.st_mode));
                     }
                 }
@@ -715,10 +713,10 @@ void ListarDirectorio(char *dir,int hid,int l,int acc,int link) {
                         struct passwd *uid = getpwuid(st.st_uid);
                         struct group *gid = getgrgid(st.st_gid);
                         if(uid!=NULL){
-                            printf("%lu (%ld) %s %s %s ", st.st_nlink, (long) st.st_ino, uid->pw_name, gid->gr_name,
+                            printf("%lu (%ld) %s %s %s ", st.st_nlink,st.st_ino, uid->pw_name, gid->gr_name,
                                    ConvierteModo2(st.st_mode));
                         }else{
-                            printf("%lu (%ld) %d %d %s ", st.st_nlink, (long) st.st_ino, st.st_uid, st.st_gid,
+                            printf("%lu (%ld) %d %d %s ", st.st_nlink, st.st_ino, st.st_uid, st.st_gid,
                                    ConvierteModo2(st.st_mode));
                         }
                     }
@@ -769,14 +767,38 @@ void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca, int
 }
 
 
-int doallocate(char *param[]) {
+int doallocate(char *param[],MemoryList Listamemoria) {
+    if(strcmp("-malloc",param[1])==0){
+        if(param[2]!=NULL){
+        long n= strtol(param[2],LNULL,10);
+        do_AllocateMalloc(Listamemoria,n);
+    }else{
+        printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
+        printListaMememoria(Listamemoria,1);
+    }
+    }
 
     return 1;
 }
 
 
-int dodeallocate(char *param[]) {
+int dodeallocate(char *param[],MemoryList Listamemoria) {
+    if(strcmp("-malloc",param[1])==0){
+        long n= strtol(param[2],LNULL,10);
+        pos p= EncontrarTamano(Listamemoria,n);
+        char* adr= getAdrres(p);
+        deleteAtPosition(p,Listamemoria);
+        free(adr);
+    }else if((strcmp("-mmap",param[1]))==0){
 
+    }else if((strcmp("-shared",param[1]))==0){
+
+    }else{
+        pos p= EncontrarPosicion(Listamemoria,param[1]);
+        char* adr= getAdrres(p);
+        deleteAtPosition(p,Listamemoria);
+        free( adr);
+    }
     return 1;
 
 }
@@ -860,7 +882,7 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam)
     /* Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave); */
     return (p);
 }
-void do_AllocateCreateshared (char *tr[])
+/*void do_AllocateCreateshared (char *tr[])
 {
     key_t cl;
     size_t tam;
@@ -881,7 +903,7 @@ void do_AllocateCreateshared (char *tr[])
         printf ("Asignados %lu bytes en %p\n",(unsigned long) tam, p);
     else
         printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
-}
+}*/
 
 
 void * MapearFichero (char * fichero, int protection)
@@ -900,7 +922,7 @@ void * MapearFichero (char * fichero, int protection)
     return p;
 }
 
-void do_AllocateMmap(char *arg[])
+/*void do_AllocateMmap(char *arg[])
 {
     char *perm;
     void *p;
@@ -917,7 +939,7 @@ void do_AllocateMmap(char *arg[])
         perror ("Imposible mapear fichero");
     else
         printf ("fichero %s mapeado en %p\n", arg[0], p);
-}
+}*/
 
 void do_DeallocateDelkey (char *args[])
 {
@@ -959,7 +981,7 @@ ssize_t LeerFichero (char *f, void *p, size_t cont)
     return n;
 }
 
-void do_I_O_read (char *ar[])
+/*void do_I_O_read (char *ar[])
 {
     void *p;
     size_t cont=-1;
@@ -968,7 +990,7 @@ void do_I_O_read (char *ar[])
         printf ("faltan parametros\n");
         return;
     }
-    p=cadtop(ar[1]);  /*convertimos de cadena a puntero*/
+    p=cadtop(ar[1]);  *convertimos de cadena a puntero*
     if (ar[2]!=NULL)
         cont=(size_t) atoll(ar[2]);
 
@@ -976,7 +998,7 @@ void do_I_O_read (char *ar[])
         perror ("Imposible leer fichero");
     else
         printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[0],p);
-}
+}*/
 
 ssize_t EscribirFichero (char *f, void *p, size_t cont,int overwrite)
 {
@@ -1030,5 +1052,63 @@ void Do_pmap (void) /*sin argumentos*/
     }
     waitpid (pid,NULL,0);
 }
+
+void do_AllocateMalloc(MemoryList listaMemoria,long tamano){
+    char* p = malloc(sizeof(tamano));
+    time_t tiempoahora;
+    time(&tiempoahora);
+    insertMemory(listaMemoria,1,p,tiempoahora,tamano,0,"f");
+    printf("Asignados %ld en %s\n",tamano, ptr2string(p));
+}
+
+void printListaMememoria(MemoryList L, int tipo){
+    pos p;
+    for (p = L->next; p->next != NULL; p = p->next){
+        if(tipo == 1&&tipo==p->tipo) {
+            char* addr=p->address;
+            struct tm *ctime = localtime(&p->time);
+            printf("%s %ld %d %d %02d:%02d malloc\n",addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
+        }
+
+    /*
+    if(tipo == 2) {
+
+            struct mmap_t *mmap = getAdrress(L->next, p);
+            //TIEMPO
+            printf("\t%p %d %s ", mmap->address, mmap->tamano, mmap->time);
+            printf("mmap %s (fd:%d)\n", mmap->name, mmap->id);
+    }
+    if(tipo == 3) {
+            struct shared_t *shared = getAdrress(L->next, p);
+            //TIEMPO
+            printf("\t%p %d %s ", shared->address, shared->tamano, shared->time);
+            printf("shared memory with key: %d\n",shared->key);
+
+    }*/
+    }
+}
+
+
+
+/*struct malloc_t{
+	void *address;
+	size_t tam;
+	time_t creationTime;
+	};
+
+struct mmap_t {
+	void *address;
+	time_t creationTime;
+	char parms[4];
+	char fich[256];
+	int id;
+	};
+
+struct shared_t{
+	void *address;
+	size_t tam;
+	time_t creationTime;
+};
+*/
 
 
