@@ -1,30 +1,39 @@
 
+//
+// Created by dani on 30/10/22.
+//
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#include "headed_linked_list.h"
+#define P0_LIST_H
 #define LNULL NULL
+#ifndef UNTITLED1_HEADED_LINKED_MEMORYLIST_H
+#define UNTITLED1_HEADED_LINKED_MEMORYLIST_H
+#include <time.h>
 
-void deleteAtPosition(tPosL p, tList  *L) ;
+typedef struct MemoryNode* pos;
 
-struct malloc_t{
+typedef struct MemoryNode{
     void *address;
-    int tamano;
-    struct tm* time;
-};
-
-struct mmap_t {
-    int tamano;
-    void *address;
-    struct tm* time;
-    char name[256];
+    time_t time;
+    char parms[4];
+    char fich[256];
     int id;
-};
+    int tipo;
+    long size;
+    pos next;
 
-struct shared_t{
-    void *address;
-    int tamano;
-    struct tm* time;
-    int key;
-};
+}MemoryNode;
+
+typedef pos MemoryList;
+
+void createMemoryList(MemoryList * L);
+bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre);
+pos EncontrarPosicion(MemoryList Lista, char* direccion);
+pos EncontrarTamano(MemoryList Lista, long tamano);
+void deleteAtPosition (pos p, MemoryList L);
+char* getAdrres(pos p);
+char *ptr2string( const void *ptr );
+
+#endif //UNTITLED1_HEADED_LINKED_MEMORYLIST_H
