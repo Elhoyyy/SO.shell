@@ -71,7 +71,7 @@ pos EncontrarTamano(MemoryList Lista, long tamano) {
 void deleteAtPosition (pos p, MemoryList L) {
     pos q;
     if (p == L->next) { //ELIMINAR ELEMENTO DEL INICIO.
-        L = L->next->next;
+        L->next=p->next;
     } else if (p->next == LNULL) { //ELIMINAR ELEMENTO DEL FINAL.
         for (q = L; q->next != p; q = q->next);
         q->next = LNULL;
