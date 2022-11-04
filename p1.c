@@ -820,7 +820,29 @@ int domemfill(char *param[]) {
 
 
 int domemdump(char *param[]) {
+    if (param[1]!=NULL){
+        char* puntero;
+        int n = 128;
+        unsigned long adr = strtoul (param[1], &puntero, 16);
+        char *boom = (char  *) adr;
+        long tam = strtol (param[2], NULL, 10);
+        char letra = param[3][0];
 
+        printf("Volcando %s bytes de memoria desde la direccion %s\n", param[1], param[2]);
+        size_t i;
+        for(int i=0;i<n;i++){
+            long aux = adr;
+            for(int j=0;j<n;j++){
+                printf(" %c ", (*(char *)aux == '\n')? ' ' : *(char *)aux);
+                aux ++;
+            }
+            printf("\n");
+            for(int j=0;j<n;j++){
+                printf("00 " );
+                adr ++;
+            }
+            printf("\n");
+    }
     return 1;
 
 }
