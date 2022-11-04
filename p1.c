@@ -66,6 +66,7 @@ void ListarDirectorio(char *dir,int hid,int l,int acc,int link);
 void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca,int recb);
 void do_AllocateMalloc(MemoryList listaMemoria,long tamano);
 void printListaMememoria(MemoryList L, int tipo);
+void LlenarMemoria (void *p, size_t cont, unsigned char byte);
 
 
 int main(){
@@ -786,9 +787,8 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
     if(strcmp("-malloc",param[1])==0){
         long n= strtol(param[2],LNULL,10);
         pos p= EncontrarTamano(Listamemoria,n);
-        char* adr= getAdrres(p);
+        free(p->address);
         deleteAtPosition(p,Listamemoria);
-        free(adr);
     }else if((strcmp("-mmap",param[1]))==0){
 
     }else if((strcmp("-shared",param[1]))==0){
@@ -805,7 +805,15 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
 
 
 int domemfill(char *param[]) {
-
+    if(param[1]!=NULL){
+        char* puntero;
+        unsigned long adr= strtoul(param[1],&puntero,16);
+        char* boom=(char *)adr;
+        long tam= strtol(param[2],NULL,10);
+        char letra=param[3][0];
+        LlenarMemoria(boom,tam,letra);
+        printf("Llenando %s bytes de memoria con el byte %s (%d) a partir de la direccion %s\n",param[2],param[3],letra,param[1]);
+    }
     return 1;
 
 }
@@ -1054,7 +1062,7 @@ void Do_pmap (void) /*sin argumentos*/
 }
 
 void do_AllocateMalloc(MemoryList listaMemoria,long tamano){
-    char* p = malloc(sizeof(tamano));
+    char* p = malloc(tamano);
     time_t tiempoahora;
     time(&tiempoahora);
     insertMemory(listaMemoria,1,p,tiempoahora,tamano,0,"f");
@@ -1063,9 +1071,9 @@ void do_AllocateMalloc(MemoryList listaMemoria,long tamano){
 
 void printListaMememoria(MemoryList L, int tipo){
     pos p;
-    for (p = L->next; p->next != NULL; p = p->next){
+    for (p = L->next; p!= NULL; p = p->next){
         if(tipo == 1&&tipo==p->tipo) {
-            char* addr=p->address;
+            char* addr= ptr2string(p->address);
             struct tm *ctime = localtime(&p->time);
             printf("%s %ld %d %d %02d:%02d malloc\n",addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
         }
@@ -1110,5 +1118,4 @@ struct shared_t{
 	time_t creationTime;
 };
 */
-
 
