@@ -60,13 +60,13 @@ int domemory(char *param[]);
 int domemdump(char *param[]);
 int dorecurse(char *param[]);
 
-
 void borrar_recursivo(char * dir);
 void ListarDirectorio(char *dir,int hid,int l,int acc,int link);
 void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca,int recb);
 void do_AllocateMalloc(MemoryList listaMemoria,long tamano);
 void printListaMememoria(MemoryList L, int tipo);
 void LlenarMemoria (void *p, size_t cont, unsigned char byte);
+void do_AllocateMmap(char *arg[]);
 
 
 int main(){
@@ -771,12 +771,19 @@ void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca, int
 int doallocate(char *param[],MemoryList Listamemoria) {
     if(strcmp("-malloc",param[1])==0){
         if(param[2]!=NULL){
-        long n= strtol(param[2],LNULL,10);
-        do_AllocateMalloc(Listamemoria,n);
-    }else{
-        printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
-        printListaMememoria(Listamemoria,1);
-    }
+            long n= strtol(param[2],LNULL,10);
+            do_AllocateMalloc(Listamemoria,n);
+        }else{
+            printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
+            printListaMememoria(Listamemoria,1);
+        }
+    }else if (strcmp( "-mmap", param[1])==0){
+        if(param[2]!=NULL){
+            do_AllocateMmap(&param[2]);
+        }else{
+            perror("Imposible mapear fichero");
+        }
+
     }
 
     return 1;
@@ -790,7 +797,9 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
         free(p->address);
         deleteAtPosition(p,Listamemoria);
     }else if((strcmp("-mmap",param[1]))==0){
-
+        pos p = EncontrarFichero(Listamemoria, p->fich);
+        free(p->address);
+        deleteAtPosition(p, Listamemoria);
     }else if((strcmp("-shared",param[1]))==0){
 
     }else{
@@ -817,8 +826,6 @@ int domemfill(char *param[]) {
     return 1;
 
 }
-
-
 
 
 int domemdump(char *param[]) {
@@ -848,6 +855,14 @@ int domemdump(char *param[]) {
         }
 
     }
+
+
+
+
+
+
+    return 1;
+
 }
 
 
@@ -920,12 +935,10 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam)
     key_t cl;
     size_t tam;
     void *p;
-
     if (tr[0]==NULL || tr[1]==NULL) {
         ImprimirListaShared(&L);
         return;
     }
-
     cl=(key_t)  strtoul(tr[0],NULL,10);
     tam=(size_t) strtoul(tr[1],NULL,10);
     if (tam==0) {
@@ -944,25 +957,28 @@ void * MapearFichero (char * fichero, int protection)
     int df, map=MAP_PRIVATE,modo=O_RDONLY;
     struct stat s;
     void *p;
-
+    time_t tiempoahora;
+    time(&tiempoahora);
+    MemoryList Lista;
     if (protection&PROT_WRITE)
         modo=O_RDWR;
     if (stat(fichero,&s)==-1 || (df=open(fichero, modo))==-1)
         return NULL;
     if ((p=mmap (NULL,s.st_size, protection,map,df,0))==MAP_FAILED)
         return NULL;
-/* Guardar en la lista    InsertarNodoMmap (&L,p, s.st_size,df,fichero); */
+    insertMemory(Lista,2,p, tiempoahora,s.st_size,df,fichero);
     return p;
 }
 
-/*void do_AllocateMmap(char *arg[])
+void do_AllocateMmap(char *arg[])
 {
     char *perm;
     void *p;
     int protection=0;
-
+    MemoryList Listamemoria;
     if (arg[0]==NULL)
-    {ImprimirListaMmap(&L); return;}
+    {printListaMememoria(Listamemoria,1);
+        return;}
     if ((perm=arg[1])!=NULL && strlen(perm)<4) {
         if (strchr(perm,'r')!=NULL) protection|=PROT_READ;
         if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
@@ -972,7 +988,7 @@ void * MapearFichero (char * fichero, int protection)
         perror ("Imposible mapear fichero");
     else
         printf ("fichero %s mapeado en %p\n", arg[0], p);
-}*/
+}
 
 void do_DeallocateDelkey (char *args[])
 {
@@ -1026,7 +1042,6 @@ ssize_t LeerFichero (char *f, void *p, size_t cont)
     p=cadtop(ar[1]);  *convertimos de cadena a puntero*
     if (ar[2]!=NULL)
         cont=(size_t) atoll(ar[2]);
-
     if ((n=LeerFichero(ar[0],p,cont))==-1)
         perror ("Imposible leer fichero");
     else
@@ -1103,44 +1118,20 @@ void printListaMememoria(MemoryList L, int tipo){
             printf("%s %ld %d %d %02d:%02d malloc\n",addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
         }
 
-    /*
-    if(tipo == 2) {
-
-            struct mmap_t *mmap = getAdrress(L->next, p);
-            //TIEMPO
-            printf("\t%p %d %s ", mmap->address, mmap->tamano, mmap->time);
-            printf("mmap %s (fd:%d)\n", mmap->name, mmap->id);
-    }
-    if(tipo == 3) {
-            struct shared_t *shared = getAdrress(L->next, p);
-            //TIEMPO
-            printf("\t%p %d %s ", shared->address, shared->tamano, shared->time);
-            printf("shared memory with key: %d\n",shared->key);
-
-    }*/
+        /*
+        if(tipo == 2) {
+                struct mmap_t *mmap = getAdrress(L->next, p);
+                //TIEMPO
+                printf("\t%p %d %s ", mmap->address, mmap->tamano, mmap->time);
+                printf("mmap %s (fd:%d)\n", mmap->name, mmap->id);
+        }
+        if(tipo == 3) {
+                struct shared_t *shared = getAdrress(L->next, p);
+                //TIEMPO
+                printf("\t%p %d %s ", shared->address, shared->tamano, shared->time);
+                printf("shared memory with key: %d\n",shared->key);
+        }*/
     }
 }
 
-
-
-/*struct malloc_t{
-	void *address;
-	size_t tam;
-	time_t creationTime;
-	};
-
-struct mmap_t {
-	void *address;
-	time_t creationTime;
-	char parms[4];
-	char fich[256];
-	int id;
-	};
-
-struct shared_t{
-	void *address;
-	size_t tam;
-	time_t creationTime;
-};
-*/
 
