@@ -28,6 +28,7 @@ bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, 
             q->size=tamano;
             q->tipo=tipo;
             q->time=t;
+            q->id=df;
             q->next = LNULL;
         }else{
             q->address=dirrecion;
