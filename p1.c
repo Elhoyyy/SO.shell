@@ -66,7 +66,8 @@ void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca,int 
 void do_AllocateMalloc(MemoryList listaMemoria,long tamano);
 void printListaMememoria(MemoryList L, int tipo);
 void LlenarMemoria (void *p, size_t cont, unsigned char byte);
-void do_AllocateMmap(char *arg[]);
+void do_AllocateMmap(char *arg[],MemoryList listamemoria);
+void do_AllocateCreateshared (char *tr[],MemoryList Listamemoria);
 
 
 int main(){
@@ -779,13 +780,13 @@ int doallocate(char *param[],MemoryList Listamemoria) {
         }
     }else if (strcmp( "-mmap", param[1])==0){
         if(param[2]!=NULL){
-            do_AllocateMmap(&param[2]);
+            do_AllocateMmap(param,Listamemoria);
         }else{
             perror("Imposible mapear fichero");
         }
-
-    }
-
+        }else if(strcmp("-shared",param[1])==0){
+        do_AllocateCreateshared(param,Listamemoria);
+        }
     return 1;
 }
 
@@ -797,9 +798,12 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
         free(p->address);
         deleteAtPosition(p,Listamemoria);
     }else if((strcmp("-mmap",param[1]))==0){
+        for(pos i=Listamemoria->next;i!=NULL;i=i->next){
         pos p = EncontrarFichero(Listamemoria, p->fich);
+        close(p->id);
         free(p->address);
         deleteAtPosition(p, Listamemoria);
+    }
     }else if((strcmp("-shared",param[1]))==0){
 
     }else{
@@ -831,36 +835,26 @@ int domemfill(char *param[]) {
 int domemdump(char *param[]) {
     if (param[1] != NULL) {
         char *puntero;
-        int n = 128;
         unsigned long adr = strtoul(param[1], &puntero, 16);
         char *boom = (char *) adr;
         long tam = strtol(param[2], NULL, 10);
-        char letra = param[3][0];
-
+        unsigned char *arr=(unsigned char *)boom;
+        unsigned char a= arr[9];
         printf("Volcando %s bytes de memoria desde la direccion %s\n", param[1], param[2]);
         size_t i, j;
-        for (i = 0; i < 2; i++) {
-            for (j = 0; i < tam; j++) {
-                if (i == 0) {
-                    printf(" %c ", letra);
+            for (j = 0; j < tam; j++) {
+                if(arr[j]!=0){
+                    printf(" %c ", arr[j]);
                 } else {
-                    printf("%d", letra);
+                    printf(" ");
                 }
             }
             printf("\n");
-            for (j = 0; i < tam; j++) {
-                printf("00");
+            for (j = 0; j < tam; j++) {
+                printf("%02d ",arr[j]);
             }
             printf("\n");
         }
-
-    }
-
-
-
-
-
-
     return 1;
 
 }
@@ -907,12 +901,13 @@ void LlenarMemoria (void *p, size_t cont, unsigned char byte)
         arr[i]=byte;
 }
 
-void * ObtenerMemoriaShmget (key_t clave, size_t tam)
+void * ObtenerMemoriaShmget (key_t clave, size_t tam,MemoryList Listamemoria)
 {
     void * p;
     int aux,id,flags=0777;
     struct shmid_ds s;
-
+    time_t tiempoahora;
+    time(&tiempoahora);
     if (tam)     /*tam distito de 0 indica crear */
         flags=flags | IPC_CREAT | IPC_EXCL;
     if (clave==IPC_PRIVATE)  /*no nos vale*/
@@ -927,16 +922,16 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam)
         return (NULL);
     }
     shmctl (id,IPC_STAT,&s);
-    /* Guardar en la lista   InsertarNodoShared (&L, p, s.shm_segsz, clave); */
+    insertMemory(Listamemoria,3,p,tiempoahora,(long)s.shm_segsz,clave,"f");
     return (p);
 }
-/*void do_AllocateCreateshared (char *tr[])
+void do_AllocateCreateshared (char *tr[],MemoryList Listamemoria)
 {
     key_t cl;
     size_t tam;
     void *p;
     if (tr[0]==NULL || tr[1]==NULL) {
-        ImprimirListaShared(&L);
+        printListaMememoria(Listamemoria,2);
         return;
     }
     cl=(key_t)  strtoul(tr[0],NULL,10);
@@ -945,46 +940,44 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam)
         printf ("No se asignan bloques de 0 bytes\n");
         return;
     }
-    if ((p=ObtenerMemoriaShmget(cl,tam))!=NULL)
+    if ((p=ObtenerMemoriaShmget(cl,tam,Listamemoria))!=NULL)
         printf ("Asignados %lu bytes en %p\n",(unsigned long) tam, p);
     else
         printf ("Imposible asignar memoria compartida clave %lu:%s\n",(unsigned long) cl,strerror(errno));
-}*/
+}
 
 
-void * MapearFichero (char * fichero, int protection)
+void * MapearFichero (char * fichero, int protection,MemoryList Listamemoria)
 {
     int df, map=MAP_PRIVATE,modo=O_RDONLY;
     struct stat s;
     void *p;
     time_t tiempoahora;
     time(&tiempoahora);
-    MemoryList Lista;
     if (protection&PROT_WRITE)
         modo=O_RDWR;
     if (stat(fichero,&s)==-1 || (df=open(fichero, modo))==-1)
         return NULL;
     if ((p=mmap (NULL,s.st_size, protection,map,df,0))==MAP_FAILED)
         return NULL;
-    insertMemory(Lista,2,p, tiempoahora,s.st_size,df,fichero);
+    insertMemory(Listamemoria,2,p, tiempoahora,s.st_size,df,fichero);
     return p;
 }
 
-void do_AllocateMmap(char *arg[])
+void do_AllocateMmap(char *arg[],MemoryList listamemoria)
 {
     char *perm;
     void *p;
     int protection=0;
-    MemoryList Listamemoria;
-    if (arg[0]==NULL)
-    {printListaMememoria(Listamemoria,1);
+    if (arg[1]==NULL)
+    {printListaMememoria(listamemoria, 2);
         return;}
-    if ((perm=arg[1])!=NULL && strlen(perm)<4) {
+    if ((perm=arg[2])!=NULL && strlen(perm)<4) {
         if (strchr(perm,'r')!=NULL) protection|=PROT_READ;
         if (strchr(perm,'w')!=NULL) protection|=PROT_WRITE;
         if (strchr(perm,'x')!=NULL) protection|=PROT_EXEC;
     }
-    if ((p=MapearFichero(arg[0],protection))==NULL)
+    if ((p=MapearFichero(arg[1], protection, listamemoria)) == NULL)
         perror ("Imposible mapear fichero");
     else
         printf ("fichero %s mapeado en %p\n", arg[0], p);
