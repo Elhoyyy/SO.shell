@@ -32,6 +32,7 @@ void createMemoryList(MemoryList * L);
 bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre);
 pos EncontrarPosicion(MemoryList Lista, char* direccion);
 pos EncontrarTamano(MemoryList Lista, long tamano);
+pos EncontrarFichero(MemoryList Lista, char* nombre);
 void deleteAtPosition (pos p, MemoryList L);
 char* getAdrres(pos p);
 char *ptr2string( const void *ptr );
