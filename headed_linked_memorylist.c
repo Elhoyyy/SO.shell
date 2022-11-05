@@ -1,5 +1,4 @@
 
-
 //
 // Created by dani on 30/10/22.
 //
@@ -25,11 +24,11 @@ bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, 
         return false;
     } else {
         if(tipo==1||tipo==3){
-        q->address=dirrecion;
-        q->size=tamano;
-        q->tipo=tipo;
-        q->time=t;
-        q->next = LNULL;
+            q->address=dirrecion;
+            q->size=tamano;
+            q->tipo=tipo;
+            q->time=t;
+            q->next = LNULL;
         }else{
             q->address=dirrecion;
             q->size=tamano;
@@ -59,6 +58,11 @@ pos EncontrarPosicion(MemoryList Lista, char* direccion) {
     pos p;
     for (p = Lista->next; (p != NULL) && strcmp(ptr2string(p->address), direccion)<0; p = p->next);
     return p;
+
+}
+pos EncontrarFichero (MemoryList Lista, char* nombre){
+    pos p ;    for (p = Lista->next; (p != NULL) && strcmp(nombre, p->fich)<0; p = p->next);
+    return  p;
 
 }
 
@@ -92,5 +96,5 @@ void deleteAtPosition (pos p, MemoryList L) {
 
 }
 char* getAdrres(pos p){
-     return p->address;
+    return p->address;
 }
