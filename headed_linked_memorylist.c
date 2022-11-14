@@ -1,4 +1,3 @@
-
 //
 // Created by dani on 30/10/22.
 //
@@ -18,19 +17,18 @@ bool createNodeMem( pos* p){
     return *p!=LNULL;
 }
 
-bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre) {
+bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre,int key) {
     pos p, q; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
     if (!createNodeMem(&q)) { //SI NO HAY NODO SE RETORNA FALSO.
         return false;
     } else {
-        if(tipo==1||tipo==3){
+        if(tipo==1){
             q->address=dirrecion;
             q->size=tamano;
             q->tipo=tipo;
             q->time=t;
-            q->id=df;
             q->next = LNULL;
-        }else{
+        }else if(tipo==3){
             q->address=dirrecion;
             q->size=tamano;
             q->tipo=tipo;
@@ -38,6 +36,13 @@ bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, 
             q->next = LNULL;
             q->id=df;
             strcpy(q->fich,nombre);
+        }else if(tipo==2){
+            q->address=dirrecion;
+            q->size=tamano;
+            q->tipo=tipo;
+            q->time=t;
+            q->key=key;
+            q->next = LNULL;
         }
         if (L->next == LNULL) { //LISTA VACÍA.
             L->next = q;
@@ -91,6 +96,7 @@ void deleteAtPosition (pos p, MemoryList L) {
         p->time=q->time;
         p->id=q->id;
         p->next = q->next;
+        p->key=q->key;
         p = q;
     }
     free(p);
@@ -99,3 +105,12 @@ void deleteAtPosition (pos p, MemoryList L) {
 char* getAdrres(pos p){
     return p->address;
 }
+
+pos EncontrarLlave(MemoryList Lista, int key) {
+    pos p;
+    for (p = Lista->next; (p != NULL) && p->key!=key; p = p->next);
+    return p;
+
+}
+
+
