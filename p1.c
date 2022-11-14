@@ -26,6 +26,9 @@ DATE: 20/10/2022
 #include <sys/shm.h>
 #include <sys/mman.h>
 
+#define MALLOC 1
+#define SHARED 2
+#define MMAP 3
 #define N 48
 #define TAMANO 2048
 
@@ -70,7 +73,10 @@ void do_AllocateMmap(char *arg[],MemoryList listamemoria);
 void do_AllocateCreateshared (char *tr[],MemoryList Listamemoria);
 void Recursiva (int n);
 void do_I_O_read (char *ar[]);
-
+void do_DeallocateDelkey (char *args[]);
+ssize_t EscribirFichero (char *f, void *p, size_t cont,int overwrite);
+void do_I_O_write (char *ar[]);
+void Do_pmap (void);
 
 int main(){
     int acabar=0;
@@ -785,9 +791,21 @@ int doallocate(char *param[],MemoryList Listamemoria) {
         }else{
             perror("Imposible mapear fichero");
         }
-        }else if(strcmp("-createshared",param[1])==0){
-        do_AllocateCreateshared(param,Listamemoria);
+
+        }else if (strcmp( "-createshared", param[1])==0){
+        if(param[2]!=NULL){
+            do_AllocateCreateshared(param,Listamemoria);
+        }else{
+            perror("Imposible crear llave");
         }
+    }else if (strcmp( "-shared", param[1])==0){
+        if(param[2]!=NULL){
+            do_AllocateMmap(param,Listamemoria);
+        }else{
+            perror("Imposible mapear fichero");
+        }
+    }
+
     return 1;
 }
 
@@ -799,14 +817,17 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
         free(p->address);
         deleteAtPosition(p,Listamemoria);
     }else if((strcmp("-mmap",param[1]))==0){
-        for(pos i=Listamemoria->next;i!=NULL;i=i->next){
-        pos p = EncontrarFichero(Listamemoria, p->fich);
+        pos p = EncontrarFichero(Listamemoria, param[2]);
         close(p->id);
-        free(p->address);  //CHAMAR A MUNMAP
+        munmap(p->address,p->size);
         deleteAtPosition(p, Listamemoria);
-    }
-    }else if((strcmp("-shared",param[1]))==0){
 
+    }else if((strcmp("-shared",param[1]))==0){
+            long n= strtol(param[2],LNULL,10);
+            int key=(int) n;
+            pos p = EncontrarLlave(Listamemoria, key);
+            do_DeallocateDelkey(param);
+            deleteAtPosition(p, Listamemoria);
     }else{
         pos p= EncontrarPosicion(Listamemoria,param[1]);
         char* adr= getAdrres(p);
@@ -857,6 +878,9 @@ int domemdump(char *param[]) {
         unsigned char *arr=(unsigned char *)boom;
         printf("Volcando %s bytes de memoria desde la direccion %s\n", param[1], param[2]);
         size_t i, j;
+        while (tam>0){
+            int tamano=(int)tam;
+            int nb=(tamano>=25)? 25:tamano;
             for (j = 0; j < tam; j++) {
                 if(arr[j]!=0){
                     printf(" %3c ", arr[j]);
@@ -869,14 +893,41 @@ int domemdump(char *param[]) {
                 printf("%3x ",arr[j]);
             }
             printf("\n");
+            tamano-=nb;
         }
+    }
     return 1;
 
 }
 
-
+int pepe=0,jose=0,luis=0;
 int domemory(char *param[]) {
-
+    if(param[1]==NULL){
+            char* cadena[]={"-tomasito","-all",};
+            domemory(cadena);
+    }else{
+    if(strcmp("-blocks",param[1])==0){
+        //imprimir toda la lista
+    }else if(strcmp("-vars",param[1])==0){
+        int a=0,b=0,c=0;
+        int static x=0,y=0,z=0;
+        printf("Variables locales: \t %p,%p,%p\n",&a,&b,&c);
+        printf("Variables estaticas: \t %p,%p,%p\n",&x,&y,&z);
+        printf("Variables globales: \t %p,%p,%p\n",&pepe,&jose,&luis);
+    }else if(strcmp("-funcs",param[1])==0){
+        printf("Funciones programa\t %p,%p,%p\n",dofecha,docarpeta, doautores);
+        printf("Funciones libreria\t %p,%p,%p\n", strtol, strcpy, printf);
+    }else if(strcmp("-all",param[1])==0){
+        char* cadena[]={"-pepito","-blocks"};
+        domemory(cadena);
+        char* cadena1[]={"-josito","-vars"};
+        domemory(cadena1);
+        char* cadena2[]={"-lusisto","-funcs"};
+        domemory(cadena2);
+    }else if(strcmp("-pmap",param[1])==0){
+        Do_pmap();
+    }
+    }
     return 1;
 
 }
@@ -896,6 +947,10 @@ int dorecurse(char *param[]) {
 int doinout(char *param[]) {
     if(strcmp("read",param[1])==0){
         do_I_O_read(param);
+    }else if(strcmp("write",param[1])==0){
+        do_I_O_write(param);
+    }else{
+        printf("uso: e-s [read][write] ......");
     }
     return 1;
 
@@ -943,7 +998,7 @@ void * ObtenerMemoriaShmget (key_t clave, size_t tam,MemoryList Listamemoria)
         return (NULL);
     }
     shmctl (id,IPC_STAT,&s);
-    insertMemory(Listamemoria,3,p,tiempoahora,(long)s.shm_segsz,clave,"f");
+    insertMemory(Listamemoria,SHARED,p,tiempoahora,(long)s.shm_segsz,0,NULL,clave);
     return (p);
 }
 void do_AllocateCreateshared (char *tr[],MemoryList Listamemoria)
@@ -981,7 +1036,7 @@ void * MapearFichero (char * fichero, int protection,MemoryList Listamemoria)
         return NULL;
     time_t tiempoahora;
     time(&tiempoahora);
-    insertMemory(Listamemoria,2,p, tiempoahora,s.st_size,df,fichero);
+    insertMemory(Listamemoria,MMAP,p, tiempoahora,s.st_size,df,fichero,0);
     return p;
 }
 
@@ -1008,7 +1063,7 @@ void do_DeallocateDelkey (char *args[])
 {
     key_t clave;
     int id;
-    char *key=args[0];
+    char *key=args[2];
 
     if (key==NULL || (clave=(key_t) strtoul(key,NULL,10))==IPC_PRIVATE){
         printf ("      delkey necesita clave_valida\n");
@@ -1058,6 +1113,28 @@ void do_I_O_read (char *ar[])
     if (ar[2]!=NULL)
         cont=(size_t) atoll(ar[5]);
     if ((n=LeerFichero(ar[3],p,cont))==-1)
+        perror ("Imposible leer fichero");
+    else
+        printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[3],p);
+}
+void do_I_O_write (char *ar[])
+{
+    size_t cont=-1;
+    char* puntero;
+    int o=0;
+    ssize_t n;
+    if(strcmp(ar[2],"-o")==0){
+        o=1;
+    }
+    if (ar[1]==NULL || ar[2+o]==NULL){
+        printf ("faltan parametros\n");
+        return;
+    }
+    unsigned long adr= strtoul(ar[4+o],&puntero,16);
+    char* p=(char *)adr;  //convertimos de cadena a puntero
+    if (ar[2+o]!=NULL)
+        cont=(size_t) atoll(ar[5+o]);
+    if ((n=EscribirFichero(ar[3+o],p,cont,o))==-1)
         perror ("Imposible leer fichero");
     else
         printf ("leidos %lld bytes de %s en %p\n",(long long) n,ar[3],p);
@@ -1120,7 +1197,7 @@ void do_AllocateMalloc(MemoryList listaMemoria,long tamano){
     char* p = malloc(tamano);
     time_t tiempoahora;
     time(&tiempoahora);
-    insertMemory(listaMemoria,1,p,tiempoahora,tamano,0,"f");
+    insertMemory(listaMemoria,MALLOC,p,tiempoahora,tamano,0,NULL,0);
     printf("Asignados %ld en %s\n",tamano, ptr2string(p));
 }
 
