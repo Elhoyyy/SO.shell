@@ -22,6 +22,7 @@ typedef struct MemoryNode{
     int id;
     int tipo;
     long size;
+    int key;
     pos next;
 
 }MemoryNode;
@@ -29,12 +30,13 @@ typedef struct MemoryNode{
 typedef pos MemoryList;
 
 void createMemoryList(MemoryList * L);
-bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre);
+bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre,int key);
 pos EncontrarPosicion(MemoryList Lista, char* direccion);
 pos EncontrarTamano(MemoryList Lista, long tamano);
 pos EncontrarFichero(MemoryList Lista, char* nombre);
 void deleteAtPosition (pos p, MemoryList L);
 char* getAdrres(pos p);
 char *ptr2string( const void *ptr );
+pos EncontrarLlave(MemoryList Lista, int key);
 
 #endif //UNTITLED1_HEADED_LINKED_MEMORYLIST_H
