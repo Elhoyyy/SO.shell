@@ -1233,24 +1233,24 @@ void do_AllocateMalloc(MemoryList listaMemoria,long tamano){
     printf("Asignados %ld en %s\n",tamano, ptr2string(p));
 }
 
+
 void printListaMememoria(MemoryList L, int tipo){
     pos p;
     for (p = L->next; p!= NULL; p = p->next){
         if(tipo == 1&&tipo==p->tipo) {
             char* addr= ptr2string(p->address);
             struct tm *ctime = localtime(&p->time);
-            printf("%s %ld %d %d %02d:%02d malloc\n",addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
+            printf("\t%s%12ld %d %d %02d:%02d malloc\n", addr, p->size, ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
         }
-
-        if(tipo == 3 && tipo== p->tipo) {
+        if(tipo == 2 && tipo== p->tipo) {
             char* addr= ptr2string(p->address);
             struct tm *ctime = localtime(&p->time);
-            printf("mmap %s (fd:%d) %s %ld %d %d %02d:%02d\n",p->fich, p->id, addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
+            printf("\t%s%12ld %d %d %02d:%02d mmap %s (descriptor:%d)\n", addr, p->size, ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min, p->fich, p->id);
         }
-        if(tipo == 2&& tipo== p->tipo) {
+        if(tipo == 3&& tipo== p->tipo) {
             char* addr= ptr2string(p->address);
             struct tm *ctime = localtime(&p->time);
-            printf("shared memory with key: %d %s %ld %d %d %02d:%02d\n", p->key, addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
+            printf("\t%s%12ld %d %d %02d:%02d shared (key:%d)\n", addr, p->size, ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min, p->key);
         }
     }
 }
