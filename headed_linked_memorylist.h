@@ -38,5 +38,6 @@ void deleteAtPosition (pos p, MemoryList L);
 char* getAdrres(pos p);
 char *ptr2string( const void *ptr );
 pos EncontrarLlave(MemoryList Lista, int key);
+void deleteMemorylist (MemoryList L);
 
 #endif //UNTITLED1_HEADED_LINKED_MEMORYLIST_H
