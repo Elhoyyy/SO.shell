@@ -74,7 +74,7 @@ pos EncontrarFichero (MemoryList Lista, char* nombre){
 
 pos EncontrarTamano(MemoryList Lista, long tamano) {
     pos p;
-    for (p = Lista->next; (p != NULL) && p->size!=tamano; p = p->next);
+    for (p = Lista->next; (p != NULL) && p->size!=tamano && p->tipo!=1; p = p->next);
     return p;
 
 }
@@ -112,5 +112,15 @@ pos EncontrarLlave(MemoryList Lista, int key) {
     return p;
 
 }
+void deleteMemorylist (MemoryList L){
+    pos q, p ;
+    q=L->next;
+    while(q!=NULL){
+        p=q;
+        q=q->next;
+        free (p);
 
+    }
+    L->next=NULL;
+}
 
