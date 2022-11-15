@@ -1,9 +1,9 @@
 /*TITULO:
-SISTEMAS OPERATIVOS Práctica 1
+SISTEMAS OPERATIVOS Práctica 2
 AUTOR 1: Eloy Sastre Sobrino LOGIN 1: eloy.sastre
 AUTOR 2: Daniel Pérez Mosquera LOGIN 2: daniel.pmosquera
 GROUP: 1.1
-DATE: 20/10/2022
+DATE: 18/11/2022
 */
 
 #include "headed_linked_list.h"
@@ -59,7 +59,7 @@ int doallocate(char *param[],MemoryList Listamemoria);
 int dodeallocate(char *param[],MemoryList Listamemoria);
 int doinout(char *param[]);
 int domemfill(char *param[]);
-int domemory(char *param[]);
+int domemory(char *param[],MemoryList Listamemoria);
 int domemdump(char *param[]);
 int dorecurse(char *param[]);
 
@@ -219,7 +219,7 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
         i=domemdump(param);
 
     }else if(strcmp(param[0], "memory")==0){
-        i=domemory(param);
+        i=domemory(param,Listamemoria);
 
     }else if(strcmp(param[0], "recurse")==0){
         i=dorecurse(param);
@@ -809,7 +809,6 @@ int doallocate(char *param[],MemoryList Listamemoria) {
     return 1;
 }
 
-
 int dodeallocate(char *param[],MemoryList Listamemoria) {
     if(strcmp("-malloc",param[1])==0){
         long n= strtol(param[2],LNULL,10);
@@ -877,7 +876,7 @@ int domemdump(char *param[]) {
         }
         unsigned char *arr=(unsigned char *)boom;
         printf("Volcando %s bytes de memoria desde la direccion %s\n", param[1], param[2]);
-        size_t i, j;
+        size_t j;
         while (tam>0){
             int tamano=(int)tam;
             int nb=(tamano>=25)? 25:tamano;
@@ -901,13 +900,15 @@ int domemdump(char *param[]) {
 }
 
 int pepe=0,jose=0,luis=0;
-int domemory(char *param[]) {
+int domemory(char *param[],MemoryList listamemoria) {
     if(param[1]==NULL){
             char* cadena[]={"-tomasito","-all",};
-            domemory(cadena);
+            domemory(cadena,listamemoria);
     }else{
     if(strcmp("-blocks",param[1])==0){
-        //imprimir toda la lista
+        printListaMememoria(listamemoria, MALLOC);
+        printListaMememoria(listamemoria, MMAP);
+        printListaMememoria(listamemoria, SHARED);
     }else if(strcmp("-vars",param[1])==0){
         int a=0,b=0,c=0;
         int static x=0,y=0,z=0;
@@ -919,11 +920,11 @@ int domemory(char *param[]) {
         printf("Funciones libreria\t %p,%p,%p\n", strtol, strcpy, printf);
     }else if(strcmp("-all",param[1])==0){
         char* cadena[]={"-pepito","-blocks"};
-        domemory(cadena);
+        domemory(cadena,listamemoria);
         char* cadena1[]={"-josito","-vars"};
-        domemory(cadena1);
+        domemory(cadena1,listamemoria);
         char* cadena2[]={"-lusisto","-funcs"};
-        domemory(cadena2);
+        domemory(cadena2,listamemoria);
     }else if(strcmp("-pmap",param[1])==0){
         Do_pmap();
     }
@@ -1210,18 +1211,16 @@ void printListaMememoria(MemoryList L, int tipo){
             printf("%s %ld %d %d %02d:%02d malloc\n",addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
         }
 
-        /*
-        if(tipo == 2) {
-                struct mmap_t *mmap = getAdrress(L->next, p);
-                //TIEMPO
-                printf("\t%p %d %s ", mmap->address, mmap->tamano, mmap->time);
-                printf("mmap %s (fd:%d)\n", mmap->name, mmap->id);
+       
+        if(tipo == 2 && tipo== p->tipo) {
+                char* addr= ptr2string(p->address);
+            	struct tm *ctime = localtime(&p->time);
+            	printf("\t mmap %s (fd:%d) %s %ld %d %d %02d:%02d malloc\n",p->fich, p->id, addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
         }
-        if(tipo == 3) {
-                struct shared_t *shared = getAdrress(L->next, p);
-                //TIEMPO
-                printf("\t%p %d %s ", shared->address, shared->tamano, shared->time);
-                printf("shared memory with key: %d\n",shared->key);
-        }*/
+        if(tipo == 3&& tipo== p->tipo) {
+                char* addr= ptr2string(p->address);
+            	struct tm *ctime = localtime(&p->time);
+            	printf("\tshared memory with key: %d %s %ld %d %d %02d:%02d malloc\n", p->key, addr,p->size,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
+        }
     }
 }
