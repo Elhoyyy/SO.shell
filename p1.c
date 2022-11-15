@@ -1242,12 +1242,12 @@ void printListaMememoria(MemoryList L, int tipo){
             struct tm *ctime = localtime(&p->time);
             printf("\t%s%12ld %d %d %02d:%02d malloc\n", addr, p->size, ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min);
         }
-        if(tipo == 2 && tipo== p->tipo) {
+        if(tipo == 3 && tipo== p->tipo) {
             char* addr= ptr2string(p->address);
             struct tm *ctime = localtime(&p->time);
             printf("\t%s%12ld %d %d %02d:%02d mmap %s (descriptor:%d)\n", addr, p->size, ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min, p->fich, p->id);
         }
-        if(tipo == 3&& tipo== p->tipo) {
+        if(tipo == 2&& tipo== p->tipo) {
             char* addr= ptr2string(p->address);
             struct tm *ctime = localtime(&p->time);
             printf("\t%s%12ld %d %d %02d:%02d shared (key:%d)\n", addr, p->size, ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min, p->key);
