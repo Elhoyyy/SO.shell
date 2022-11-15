@@ -19,39 +19,28 @@ bool createNodeMem( pos* p){
 
 bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre,int key) {
     pos p, q; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
-    if (!createNodeMem(&q)) { //SI NO HAY NODO SE RETORNA FALSO.
+
+    if (!createNodeMem(&q)) //SI NO HAY NODO SE RETORNA FALSO.
         return false;
-    } else {
-        if(tipo==1){
-            q->address=dirrecion;
-            q->size=tamano;
-            q->tipo=tipo;
-            q->time=t;
-            q->next = LNULL;
-        }else if(tipo==3){
-            q->address=dirrecion;
-            q->size=tamano;
-            q->tipo=tipo;
-            q->time=t;
-            q->next = LNULL;
-            q->id=df;
-            strcpy(q->fich,nombre);
-        }else if(tipo==2){
-            q->address=dirrecion;
-            q->size=tamano;
-            q->tipo=tipo;
-            q->time=t;
-            q->key=key;
-            q->next = LNULL;
-        }
-        if (L->next == LNULL) { //LISTA VACÍA.
-            L->next = q;
-        } else{
-            for(p=L->next;p->next!=NULL;p=p->next);
-            p->next=q;
-        }
-        return true;
+
+    q->address=dirrecion;
+    q->size=tamano;
+    q->tipo=tipo;
+    q->time=t;
+    q->next = LNULL;
+    if(tipo==3){
+        q->id=df;
+        strcpy(q->fich,nombre);
+    }else if(tipo==2)
+        q->key=key;
+
+    if (L->next == LNULL) { //LISTA VACÍA.
+        L->next = q;
+    } else{
+        for(p=L->next;p->next!=NULL;p=p->next);
+        p->next=q;
     }
+    return true;
 }
 char *ptr2string( const void *ptr ) {
     int size = snprintf( NULL, 0, "%p", ptr );
@@ -73,10 +62,15 @@ pos EncontrarFichero (MemoryList Lista, char* nombre){
 }
 
 pos EncontrarTamano(MemoryList Lista, long tamano) {
-    pos p;
-    for (p = Lista->next; (p != NULL) && p->size!=tamano && p->tipo!=1; p = p->next);
-    return p;
+    pos p = Lista;
 
+    while (p != NULL) {
+        if (p->tipo==1 && p->size == tamano)
+            return p;
+        p = p->next;
+    }
+
+    return NULL;
 }
 void deleteAtPosition (pos p, MemoryList L) {
     pos q;
