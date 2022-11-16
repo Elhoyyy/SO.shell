@@ -858,7 +858,7 @@ int domemfill(char *param[]) {
         unsigned long adr= strtoul(param[1],&puntero,16);
         char* boom=(char *)adr;
         if(param[2]!=NULL){
-        tam= strtol(param[2],NULL,10);
+            tam= strtol(param[2],NULL,10);
         }else{
             tam=128;
         }
@@ -868,7 +868,7 @@ int domemfill(char *param[]) {
             letra='A';
         }
         LlenarMemoria(boom,tam,letra);
-        printf("Llenando %s bytes de memoria con el byte %c (%d) a partir de la direccion %s\n",param[2],letra,letra,param[1]);
+        printf("Llenando %s bytes de memoria con el byte %s (%x) a partir de la direccion %s\n",param[2],param[3],letra,param[1]);
     }
     return 1;
 
@@ -879,6 +879,8 @@ int domemdump(char *param[]) {
     if (param[1] != NULL) {
         char *puntero;
         long tam;
+        int nb;
+        int tamano;
         unsigned long adr = strtoul(param[1], &puntero, 16);
         char *boom = (char *) adr;
         if(param[2]!=NULL){
@@ -886,26 +888,26 @@ int domemdump(char *param[]) {
         }else{
             tam=25;
         }
+
+        tamano=(int)tam;
         unsigned char *arr=(unsigned char *)boom;
-        printf("Volcando %lu bytes de memoria desde la direccion %s\n", tam, param[1]);
-        size_t i, j;
-        int linea=0;
-        while (tam>0){
-            int nb=(tam>=25)? 25:(int)tam;
-            for (j=0; j < nb; j++) {
-                if(arr[j+25*linea]!=0){
-                    printf(" %3c ", arr[j+25*linea]);
+        printf("Volcando %s bytes de memoria desde la direccion %s\n", param[1], param[2]);
+        size_t j;
+        while (tamano>0){
+            nb=(tamano>=25)? 25:tamano;
+            for (j = 0; j < tam; j++) {
+                if(arr[j]!=0){
+                    printf(" %3c ", arr[j]);
                 } else {
                     printf(" ");
                 }
             }
             printf("\n");
-            for (i = 0; i < nb; i++) {
-                printf("  %3x ",arr[i+25*linea]);
+            for (j = 0; j < tam; j++) {
+                printf(" %3x ",arr[j]);
             }
             printf("\n");
-            tam=tam-nb;
-            linea++;
+            tamano-=nb;
         }
     }
     return 1;
