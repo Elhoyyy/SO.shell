@@ -897,14 +897,14 @@ int domemdump(char *param[]) {
             nb=(tamano>=25)? 25:tamano;
             for (j = 0; j < tam; j++) {
                 if(arr[j]!=0){
-                    printf(" %3c ", arr[j]);
+                    printf("%3c ", arr[j]);
                 } else {
                     printf(" ");
                 }
             }
             printf("\n");
             for (j = 0; j < tam; j++) {
-                printf(" %3x ",arr[j]);
+                printf(" %02x ",arr[j]);
             }
             printf("\n");
             tamano-=nb;
