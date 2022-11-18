@@ -1,3 +1,4 @@
+
 /*TITULO:
 SISTEMAS OPERATIVOS Práctica 1
 AUTOR 1: Eloy Sastre Sobrino LOGIN 1: eloy.sastre
@@ -781,7 +782,6 @@ void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca, int
 
 int doallocate(char *param[],MemoryList Listamemoria) {
     if(param[1]==NULL){
-        printf("***** Lista de bloques asignados para el proceso %d\n",getpid());
         char* cadena[]={"-tomasito","-blocks",};
         domemory(cadena,Listamemoria);
     }else{
@@ -823,7 +823,6 @@ int doallocate(char *param[],MemoryList Listamemoria) {
 
 int dodeallocate(char *param[],MemoryList Listamemoria) {
     if(param[1]==NULL){
-        printf("***** Lista de bloques asignados para el proceso %d\n",getpid());
         char* cadena[]={"-tomasito","-blocks",};
         domemory(cadena,Listamemoria);
     }else{
@@ -865,17 +864,30 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
             printf("No hay bloque de esa clave mapeado en el proceso\n");
         }else{
         shmdt(p->address);
-        do_DeallocateDelkey(param);
         deleteAtPosition(p, Listamemoria);
         }
         }else{
             printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
             printListaMememoria(Listamemoria,SHARED);
         }
+    }else if((strcmp("-delkey",param[1]))==0){
+        if(param[2]!=NULL){
+            long n= strtol(param[2],LNULL,10);
+            int key=(int) n;
+            pos p = EncontrarLlave(Listamemoria, key);
+            if(p==NULL){
+                printf("No hay bloque de esa clave mapeado en el proceso\n");
+            }else{
+                do_DeallocateDelkey(param);
+            }
+        }else{
+            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+            printListaMememoria(Listamemoria,SHARED);
+        }
+
     }else{
         pos p= EncontrarPosicion(Listamemoria,param[1]);
         if(p==NULL){
-            printf("***** Lista de bloques asignados para el proceso %d\n",getpid());
             char* cadena[]={"-tomasito","-blocks",};
             domemory(cadena,Listamemoria);
         }else{
@@ -886,10 +898,6 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
             munmap(p->address,p->size);
         }else if(p->tipo==2){
             shmdt(p->address);
-            char* key;
-            sprintf(key,"%d",p->key);
-            char* cadena[]={"algo", "nada",key };
-            do_DeallocateDelkey(cadena);
         }
         deleteAtPosition(p,Listamemoria);
     }
@@ -969,6 +977,7 @@ int domemory(char *param[],MemoryList listamemoria) {
         domemory(cadena,listamemoria);
     }else{
         if(strcmp("-blocks",param[1])==0){
+        printf("Lista de bloques asignados a %d\n",getpid());
             printListaMememoria(listamemoria,MALLOC);
             printListaMememoria(listamemoria,MMAP);
             printListaMememoria(listamemoria,SHARED);
