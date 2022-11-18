@@ -43,26 +43,38 @@ bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, 
     return true;
 }
 char *ptr2string( const void *ptr ) {
-    int size = snprintf( NULL, 0, "%p", ptr );
-    char *result = calloc( size + 1, 1 );
+    //int size = snprintf( NULL, 0, "%p", ptr );
+    static char result[1000];
     sprintf( result, "%p", ptr );
     return result;
 }
-
 pos EncontrarPosicion(MemoryList Lista, char* direccion) {
-    pos p;
-    for (p = Lista->next; (p != NULL) && strcmp(ptr2string(p->address), direccion)<0; p = p->next);
-    return p;
+    pos p = Lista->next;
+
+    while (p != NULL) {
+        if (strcmp(ptr2string(p->address),direccion)==0)
+            return p;
+        p = p->next;
+    }
+
+    return NULL;
 
 }
 pos EncontrarFichero (MemoryList Lista, char* nombre){
-    pos p ;    for (p = Lista->next; (p != NULL) && strcmp(nombre, p->fich)<0; p = p->next);
-    return  p;
+    pos p = Lista->next;
+
+    while (p != NULL) {
+        if (p->tipo==MMAP && strcmp(p->fich,nombre)==0)
+            return p;
+        p = p->next;
+    }
+
+    return NULL;
 
 }
 
 pos EncontrarTamano(MemoryList Lista, long tamano) {
-    pos p = Lista;
+    pos p = Lista->next;
 
     while (p != NULL) {
         if (p->tipo==1 && p->size == tamano)
@@ -82,7 +94,6 @@ void deleteAtPosition (pos p, MemoryList L) {
 
     } else { //ELIMINAR ELEMENTO DEL MEDIO.
         q = p->next;
-        strcpy(p->parms,q->parms);
         strcpy(p->fich,q->fich);
         p->address=q->address;
         p->size=q->size;
@@ -101,9 +112,15 @@ char* getAdrres(pos p){
 }
 
 pos EncontrarLlave(MemoryList Lista, int key) {
-    pos p;
-    for (p = Lista->next; (p != NULL) && p->key!=key; p = p->next);
-    return p;
+    pos p = Lista->next;
+
+    while (p != NULL) {
+        if (p->tipo==SHARED && p->key==key)
+            return p;
+        p = p->next;
+    }
+
+    return NULL;
 
 }
 void deleteMemorylist (MemoryList L){
@@ -117,4 +134,6 @@ void deleteMemorylist (MemoryList L){
     }
     L->next=NULL;
 }
+
+
 
