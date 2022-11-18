@@ -780,6 +780,11 @@ void procesardirectorioA(char *dir,int hid,int l,int acc,int link, int reca, int
 
 
 int doallocate(char *param[],MemoryList Listamemoria) {
+    if(param[1]==NULL){
+        printf("***** Lista de bloques asignados para el proceso %d\n",getpid());
+        char* cadena[]={"-tomasito","-blocks",};
+        domemory(cadena,Listamemoria);
+    }else{
     if(strcmp("-malloc",param[1])==0){
         if(param[2]!=NULL){
             long n= strtol(param[2],LNULL,10);
@@ -796,54 +801,99 @@ int doallocate(char *param[],MemoryList Listamemoria) {
             printListaMememoria(Listamemoria,MMAP);
         }
 
-        }else if (strcmp( "-createshared", param[1])==0){
+    }else if (strcmp( "-createshared", param[1])==0){
         if(param[2]!=NULL){
             do_AllocateCreateshared(param,Listamemoria);
         }else{
-            perror("Imposible crear llave");
+            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+            printListaMememoria(Listamemoria,SHARED);
         }
     }else if (strcmp( "-shared", param[1])==0){
         if(param[2]!=NULL){
             do_AllocateShared(param,Listamemoria);
         }else{
-            perror("Imposible mapear fichero");
+            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+            printListaMememoria(Listamemoria,SHARED);
         }
     }
-
+    }
     return 1;
 }
 
 
 int dodeallocate(char *param[],MemoryList Listamemoria) {
+    if(param[1]==NULL){
+        printf("***** Lista de bloques asignados para el proceso %d\n",getpid());
+        char* cadena[]={"-tomasito","-blocks",};
+        domemory(cadena,Listamemoria);
+    }else{
     if(strcmp("-malloc",param[1])==0){
+        if(param[2]!=NULL){
         long n= strtol(param[2],LNULL,10);
         pos p= EncontrarTamano(Listamemoria,n);
+        if(p==NULL){
+            printf("No hay bloque de ese tamano asignado con malloc\n");
+        }else{
         free(p->address);
         deleteAtPosition(p,Listamemoria);
+        }
+        }else{
+            printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
+            printListaMememoria(Listamemoria,MALLOC);
+        }
     }else if((strcmp("-mmap",param[1]))==0){
+        if(param[2]!=NULL){
         pos p = EncontrarFichero(Listamemoria, param[2]);
+            if(p==NULL){
+                printf("***** Lista de bloques asignados mmap para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,MMAP);
+            }else{
         close(p->id);
         munmap(p->address,p->size);
         deleteAtPosition(p, Listamemoria);
+            }
+    }else{
+            printf("***** Lista de bloques asignados mmap para el proceso %d\n",getpid());
+            printListaMememoria(Listamemoria,MMAP);
+        }
     }else if((strcmp("-shared",param[1]))==0){
-            long n= strtol(param[2],LNULL,10);
-            int key=(int) n;
-            pos p = EncontrarLlave(Listamemoria, key);
-            munmap(p->address,p->size);
-            do_DeallocateDelkey(param);
-            deleteAtPosition(p, Listamemoria);
+        if(param[2]!=NULL){
+        long n= strtol(param[2],LNULL,10);
+        int key=(int) n;
+        pos p = EncontrarLlave(Listamemoria, key);
+        if(p==NULL){
+            printf("No hay bloque de esa clave mapeado en el proceso\n");
+        }else{
+        shmdt(p->address);
+        do_DeallocateDelkey(param);
+        deleteAtPosition(p, Listamemoria);
+        }
+        }else{
+            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+            printListaMememoria(Listamemoria,SHARED);
+        }
     }else{
         pos p= EncontrarPosicion(Listamemoria,param[1]);
+        if(p==NULL){
+            printf("***** Lista de bloques asignados para el proceso %d\n",getpid());
+            char* cadena[]={"-tomasito","-blocks",};
+            domemory(cadena,Listamemoria);
+        }else{
         if(p->tipo==1){
             free(p->address);
         }else if(p->tipo==3){
             close(p->id);
             munmap(p->address,p->size);
         }else if(p->tipo==2){
-            munmap(p->address,p->size);
-            do_DeallocateDelkey(param);
+            shmdt(p->address);
+            char* key;
+            sprintf(key,"%d",p->key);
+            char* cadena[]={"algo", "nada",key };
+            do_DeallocateDelkey(cadena);
         }
         deleteAtPosition(p,Listamemoria);
+    }
+    }
     }
     return 1;
 
@@ -868,7 +918,7 @@ int domemfill(char *param[]) {
             letra='A';
         }
         LlenarMemoria(boom,tam,letra);
-        printf("Llenando %s bytes de memoria con el byte %s (%x) a partir de la direccion %s\n",param[2],param[3],letra,param[1]);
+        printf("Llenando %s bytes de memoria con el byte %c (%x) a partir de la direccion %s\n",param[2],letra,letra,param[1]);
     }
     return 1;
 
@@ -879,35 +929,33 @@ int domemdump(char *param[]) {
     if (param[1] != NULL) {
         char *puntero;
         long tam;
-        int nb;
-        int tamano;
         unsigned long adr = strtoul(param[1], &puntero, 16);
-        char *boom = (char *) adr;
+        char *address = (char *) adr;
         if(param[2]!=NULL){
             tam = strtol(param[2], NULL, 10);
         }else{
             tam=25;
         }
-
-        tamano=(int)tam;
-        unsigned char *arr=(unsigned char *)boom;
-        printf("Volcando %s bytes de memoria desde la direccion %s\n", param[1], param[2]);
-        size_t j;
-        while (tamano>0){
-            nb=(tamano>=25)? 25:tamano;
-            for (j = 0; j < tam; j++) {
-                if(arr[j]!=0){
-                    printf("%3c ", arr[j]);
+        unsigned char *arr=(unsigned char *)address;
+        printf("Volcando %lu bytes de memoria desde la direccion %s\n", tam, param[1]);
+        size_t i, j;
+        int linea=0;
+        while (tam>0){
+            int nb=(tam>=25)? 25:(int)tam;
+            for (j=0; j < nb; j++) {
+                if(arr[j+25*linea]!=0){
+                    printf("%3c ", arr[j+25*linea]);
                 } else {
                     printf(" ");
                 }
             }
             printf("\n");
-            for (j = 0; j < tam; j++) {
-                printf(" %02x ",arr[j]);
+            for (i = 0; i < nb; i++) {
+                printf(" %02x ",arr[i+25*linea]);
             }
             printf("\n");
-            tamano-=nb;
+            tam=tam-nb;
+            linea++;
         }
     }
     return 1;
@@ -917,32 +965,32 @@ int domemdump(char *param[]) {
 int pepe=0,jose=0,luis=0;
 int domemory(char *param[],MemoryList listamemoria) {
     if(param[1]==NULL){
-            char* cadena[]={"-tomasito","-all",};
-            domemory(cadena,listamemoria);
-    }else{
-    if(strcmp("-blocks",param[1])==0){
-        printListaMememoria(listamemoria,MALLOC);
-        printListaMememoria(listamemoria,MMAP);
-        printListaMememoria(listamemoria,SHARED);
-    }else if(strcmp("-vars",param[1])==0){
-        int a=0,b=0,c=0;
-        int static x=0,y=0,z=0;
-        printf("Variables locales: \t %p,%p,%p\n",&a,&b,&c);
-        printf("Variables estaticas: \t %p,%p,%p\n",&x,&y,&z);
-        printf("Variables globales: \t %p,%p,%p\n",&pepe,&jose,&luis);
-    }else if(strcmp("-funcs",param[1])==0){
-        printf("Funciones programa\t %p,%p,%p\n",dofecha,docarpeta, doautores);
-        printf("Funciones libreria\t %p,%p,%p\n", strtol, strcpy, printf);
-    }else if(strcmp("-all",param[1])==0){
-        char* cadena[]={"-pepito","-blocks"};
+        char* cadena[]={"-tomasito","-all",};
         domemory(cadena,listamemoria);
-        char* cadena1[]={"-josito","-vars"};
-        domemory(cadena1,listamemoria);
-        char* cadena2[]={"-lusisto","-funcs"};
-        domemory(cadena2,listamemoria);
-    }else if(strcmp("-pmap",param[1])==0){
-        Do_pmap();
-    }
+    }else{
+        if(strcmp("-blocks",param[1])==0){
+            printListaMememoria(listamemoria,MALLOC);
+            printListaMememoria(listamemoria,MMAP);
+            printListaMememoria(listamemoria,SHARED);
+        }else if(strcmp("-vars",param[1])==0){
+            int a=0,b=0,c=0;
+            int static x=0,y=0,z=0;
+            printf("Variables locales: \t %p,%p,%p\n",&a,&b,&c);
+            printf("Variables estaticas: \t %p,%p,%p\n",&x,&y,&z);
+            printf("Variables globales: \t %p,%p,%p\n",&pepe,&jose,&luis);
+        }else if(strcmp("-funcs",param[1])==0){
+            printf("Funciones programa\t %p,%p,%p\n",dofecha,docarpeta, doautores);
+            printf("Funciones libreria\t %p,%p,%p\n", strtol, strcpy, printf);
+        }else if(strcmp("-all",param[1])==0){
+            char* cadena[]={"-pepito","-blocks"};
+            domemory(cadena,listamemoria);
+            char* cadena1[]={"-josito","-vars"};
+            domemory(cadena1,listamemoria);
+            char* cadena2[]={"-lusisto","-funcs"};
+            domemory(cadena2,listamemoria);
+        }else if(strcmp("-pmap",param[1])==0){
+            Do_pmap();
+        }
     }
     return 1;
 
