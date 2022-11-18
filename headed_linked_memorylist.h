@@ -6,6 +6,9 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#define MALLOC 1
+#define SHARED 2
+#define MMAP 3
 #define P0_LIST_H
 #define LNULL NULL
 #ifndef UNTITLED1_HEADED_LINKED_MEMORYLIST_H
@@ -17,7 +20,6 @@ typedef struct MemoryNode* pos;
 typedef struct MemoryNode{
     void *address;
     time_t time;
-    char parms[4];
     char fich[256];
     int id;
     int tipo;
