@@ -82,8 +82,8 @@ void deleteAtPosition (pos p, MemoryList L) {
 
     } else { //ELIMINAR ELEMENTO DEL MEDIO.
         q = p->next;
-        strcpy(p->parms,p->parms);
-        strcpy(p->fich,p->fich);
+        strcpy(p->parms,q->parms);
+        strcpy(p->fich,q->fich);
         p->address=q->address;
         p->size=q->size;
         p->tipo=q->tipo;
