@@ -9,6 +9,7 @@ DATE: 20/10/2022
 
 #include "headed_linked_list.h"
 #include "headed_linked_memorylist.h"
+#include "headed_linked_joblist.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@ DATE: 20/10/2022
 #include <sys/wait.h>
 #include <sys/shm.h>
 #include <sys/mman.h>
+#include <sys/resource.h>
 
 #define MALLOC 1
 #define SHARED 2
@@ -79,8 +81,9 @@ ssize_t EscribirFichero (char *f, void *p, size_t cont,int overwrite);
 void do_I_O_write (char *ar[]);
 void Do_pmap (void);
 void do_AllocateShared (char *tr[],MemoryList Listamemoria);
-
-int main(){
+int dopriority ( char *param[]);
+int dofork ( char *param[]);
+int main(char* env[]){
     int acabar=0;
     char cadena[N] ;
     char *trozos[N/2];
@@ -88,6 +91,8 @@ int main(){
     createList(&Lista);
     MemoryList Listamemoria;
     createMemoryList(&Listamemoria);
+    JobList ListaJob;
+    createJobList(&ListaJob);
 
 
     while ( acabar!=-1 ){
@@ -225,10 +230,34 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
     }else if(strcmp(param[0], "memory")==0){
         i=domemory(param,Listamemoria);
 
-    }else if(strcmp(param[0], "recurse")==0){
-        i=dorecurse(param);
+    }else if(strcmp(param[0], "recurse")==0) {
+        i = dorecurse(param);
 
+    }else if ( strcmp (param[0], "priority") == 0 ){
+        i = dopriority (param);
+    }else if(strcmp(param[0], "showvar")==0){
+       // i = doshowvar (param);
 
+    }else if(strcmp(param[0], "changevar")==0){
+       // i = dochangevar (param);
+
+    }else if(strcmp(param[0], "showenv")==0){
+      //  i = doshowenv (param);
+
+    }else if(strcmp(param[0], "listjobs")==0){
+      //  i = dolistjobs (param);
+
+    }else if(strcmp(param[0], "deljobs")==0){
+      //  i = dodeljobs (param);
+
+    }else if(strcmp(param[0], "job")==0){
+      //  i = dojob (param);
+
+    }else if(strcmp(param[0], "execute")==0){
+      //  i = doexecute (param);
+
+    }else if(strcmp(param[0], "fork")==0){
+        i = dofork (param);
 
     }else {
         printf("\nEste comando no existe\n");
@@ -298,7 +327,7 @@ char * infoparametros(char * cmd){
         char* cmd;
         char* msg;
     };
-    static struct t_ayuda V[23];
+    static struct t_ayuda V[33];
 
     V[0].cmd="ayuda";
     V[1].cmd="bye";
@@ -323,6 +352,18 @@ char * infoparametros(char * cmd){
     V[20].cmd="memfill";
     V[21].cmd="memory";
     V[22].cmd="recurse";
+
+    V[23].cmd="priority";
+    V[24].cmd="showvar";
+    V[25].cmd="changevar";
+    V[26].cmd="showenv";
+    V[27].cmd="fork";
+    V[28].cmd="execute";
+    V[29].cmd="listjobs";
+    V[30].cmd="deljobs";
+    V[31].cmd="job";
+    V[32].cmd="****";
+
 
     V[0].msg="ayuda [cmd]	Muestra ayuda sobre los comandos\n";
     V[1].msg="bye 	Termina la ejecucion del shell\n";
@@ -368,12 +409,19 @@ char * infoparametros(char * cmd){
               ":-all: todo\n"
               "-pmap: muestra la salida del comando pmap(o similar)\n";
     V[22].msg="recurse [n]	Invoca a la funcion recursiva n veces\n";
-
-
-
+    V[23].msg="priority [pid] [valor] Muestra o cambia la prioridad del proceso pid a valor\n";
+    V[24].msg="showvar Muestra el valor y las direcciones de una variable de entorno\n";
+    V[25].msg="changevar [-a|-e|-p] var valor. Cambia el valor de una variable de entorno\n";
+    V[26].msg="showenv [-environ|-addr]. Muestra el entorno del proceso\n";
+    V[27].msg="fork Hace una llamada fork para crear un proceso\n";
+    V[28].msg="execute prog args.... Ejecuta, sin crear proceso,prog con argumentos\n";
+    V[29].msg="listjobs Lista los procesos en segundo plano\n";
+    V[30].msg="deljobs [-term][-sig] Elimina los propcesos terminados o terminados por senal de la lista de procesos en s.p.\n";
+    V[31].msg="job [-fg] pid Muestra informacion del proceso pid. -fg lo pasa a primer plano\n";
+    V[32].msg="****\n";
 
     int i;
-    for (i=0; i<23; i++){
+    for (i=0; i<33; i++){
         if (strcmp(V[i].cmd, cmd) ==0)
             return V[i].msg;}
     return "";
@@ -785,37 +833,37 @@ int doallocate(char *param[],MemoryList Listamemoria) {
         char* cadena[]={"-tomasito","-blocks",};
         domemory(cadena,Listamemoria);
     }else{
-    if(strcmp("-malloc",param[1])==0){
-        if(param[2]!=NULL){
-            long n= strtol(param[2],LNULL,10);
-            do_AllocateMalloc(Listamemoria,n);
-        }else{
-            printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,MALLOC);
-        }
-    }else if (strcmp( "-mmap", param[1])==0){
-        if(param[2]!=NULL){
-            do_AllocateMmap(param,Listamemoria);
-        }else{
-            printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,MMAP);
-        }
+        if(strcmp("-malloc",param[1])==0){
+            if(param[2]!=NULL){
+                long n= strtol(param[2],LNULL,10);
+                do_AllocateMalloc(Listamemoria,n);
+            }else{
+                printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,MALLOC);
+            }
+        }else if (strcmp( "-mmap", param[1])==0){
+            if(param[2]!=NULL){
+                do_AllocateMmap(param,Listamemoria);
+            }else{
+                printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,MMAP);
+            }
 
-    }else if (strcmp( "-createshared", param[1])==0){
-        if(param[2]!=NULL){
-            do_AllocateCreateshared(param,Listamemoria);
-        }else{
-            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,SHARED);
+        }else if (strcmp( "-createshared", param[1])==0){
+            if(param[2]!=NULL){
+                do_AllocateCreateshared(param,Listamemoria);
+            }else{
+                printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,SHARED);
+            }
+        }else if (strcmp( "-shared", param[1])==0){
+            if(param[2]!=NULL){
+                do_AllocateShared(param,Listamemoria);
+            }else{
+                printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,SHARED);
+            }
         }
-    }else if (strcmp( "-shared", param[1])==0){
-        if(param[2]!=NULL){
-            do_AllocateShared(param,Listamemoria);
-        }else{
-            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,SHARED);
-        }
-    }
     }
     return 1;
 }
@@ -826,82 +874,82 @@ int dodeallocate(char *param[],MemoryList Listamemoria) {
         char* cadena[]={"-tomasito","-blocks",};
         domemory(cadena,Listamemoria);
     }else{
-    if(strcmp("-malloc",param[1])==0){
-        if(param[2]!=NULL){
-        long n= strtol(param[2],LNULL,10);
-        pos p= EncontrarTamano(Listamemoria,n);
-        if(p==NULL){
-            printf("No hay bloque de ese tamano asignado con malloc\n");
-        }else{
-        free(p->address);
-        deleteAtPosition(p,Listamemoria);
-        }
-        }else{
-            printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,MALLOC);
-        }
-    }else if((strcmp("-mmap",param[1]))==0){
-        if(param[2]!=NULL){
-        pos p = EncontrarFichero(Listamemoria, param[2]);
-            if(p==NULL){
+        if(strcmp("-malloc",param[1])==0){
+            if(param[2]!=NULL){
+                long n= strtol(param[2],LNULL,10);
+                pos p= EncontrarTamano(Listamemoria,n);
+                if(p==NULL){
+                    printf("No hay bloque de ese tamano asignado con malloc\n");
+                }else{
+                    free(p->address);
+                    deleteAtPosition(p,Listamemoria);
+                }
+            }else{
+                printf("***** Lista de bloques asignados malloc para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,MALLOC);
+            }
+        }else if((strcmp("-mmap",param[1]))==0){
+            if(param[2]!=NULL){
+                pos p = EncontrarFichero(Listamemoria, param[2]);
+                if(p==NULL){
+                    printf("***** Lista de bloques asignados mmap para el proceso %d\n",getpid());
+                    printListaMememoria(Listamemoria,MMAP);
+                }else{
+                    close(p->id);
+                    munmap(p->address,p->size);
+                    deleteAtPosition(p, Listamemoria);
+                }
+            }else{
                 printf("***** Lista de bloques asignados mmap para el proceso %d\n",getpid());
                 printListaMememoria(Listamemoria,MMAP);
-            }else{
-        close(p->id);
-        munmap(p->address,p->size);
-        deleteAtPosition(p, Listamemoria);
             }
-    }else{
-            printf("***** Lista de bloques asignados mmap para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,MMAP);
-        }
-    }else if((strcmp("-shared",param[1]))==0){
-        if(param[2]!=NULL){
-        long n= strtol(param[2],LNULL,10);
-        int key=(int) n;
-        pos p = EncontrarLlave(Listamemoria, key);
-        if(p==NULL){
-            printf("No hay bloque de esa clave mapeado en el proceso\n");
-        }else{
-        shmdt(p->address);
-        deleteAtPosition(p, Listamemoria);
-        }
-        }else{
-            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,SHARED);
-        }
-    }else if((strcmp("-delkey",param[1]))==0){
-        if(param[2]!=NULL){
-            long n= strtol(param[2],LNULL,10);
-            int key=(int) n;
-            pos p = EncontrarLlave(Listamemoria, key);
-            if(p==NULL){
-                printf("No hay bloque de esa clave mapeado en el proceso\n");
+        }else if((strcmp("-shared",param[1]))==0){
+            if(param[2]!=NULL){
+                long n= strtol(param[2],LNULL,10);
+                int key=(int) n;
+                pos p = EncontrarLlave(Listamemoria, key);
+                if(p==NULL){
+                    printf("No hay bloque de esa clave mapeado en el proceso\n");
+                }else{
+                    shmdt(p->address);
+                    deleteAtPosition(p, Listamemoria);
+                }
             }else{
-                do_DeallocateDelkey(param);
+                printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,SHARED);
             }
-        }else{
-            printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
-            printListaMememoria(Listamemoria,SHARED);
-        }
+        }else if((strcmp("-delkey",param[1]))==0){
+            if(param[2]!=NULL){
+                long n= strtol(param[2],LNULL,10);
+                int key=(int) n;
+                pos p = EncontrarLlave(Listamemoria, key);
+                if(p==NULL){
+                    printf("No hay bloque de esa clave mapeado en el proceso\n");
+                }else{
+                    do_DeallocateDelkey(param);
+                }
+            }else{
+                printf("***** Lista de bloques asignados shared para el proceso %d\n",getpid());
+                printListaMememoria(Listamemoria,SHARED);
+            }
 
-    }else{
-        pos p= EncontrarPosicion(Listamemoria,param[1]);
-        if(p==NULL){
-            char* cadena[]={"-tomasito","-blocks",};
-            domemory(cadena,Listamemoria);
         }else{
-        if(p->tipo==1){
-            free(p->address);
-        }else if(p->tipo==3){
-            close(p->id);
-            munmap(p->address,p->size);
-        }else if(p->tipo==2){
-            shmdt(p->address);
+            pos p= EncontrarPosicion(Listamemoria,param[1]);
+            if(p==NULL){
+                char* cadena[]={"-tomasito","-blocks",};
+                domemory(cadena,Listamemoria);
+            }else{
+                if(p->tipo==1){
+                    free(p->address);
+                }else if(p->tipo==3){
+                    close(p->id);
+                    munmap(p->address,p->size);
+                }else if(p->tipo==2){
+                    shmdt(p->address);
+                }
+                deleteAtPosition(p,Listamemoria);
+            }
         }
-        deleteAtPosition(p,Listamemoria);
-    }
-    }
     }
     return 1;
 
@@ -977,7 +1025,7 @@ int domemory(char *param[],MemoryList listamemoria) {
         domemory(cadena,listamemoria);
     }else{
         if(strcmp("-blocks",param[1])==0){
-        printf("Lista de bloques asignados a %d\n",getpid());
+            printf("Lista de bloques asignados a %d\n",getpid());
             printListaMememoria(listamemoria,MALLOC);
             printListaMememoria(listamemoria,MMAP);
             printListaMememoria(listamemoria,SHARED);
@@ -1310,6 +1358,44 @@ void printListaMememoria(MemoryList L, int tipo){
             char* addr= ptr2string(p->address);
             struct tm *ctime = localtime(&p->time);
             printf("\t%s%12ld %d %d %02d:%02d shared (key:%d)\n", addr, p->size, ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour, ctime->tm_min, p->key);
+        }
+    }
+}
+
+
+int dopriority ( char *param[]){
+    if ( param[1]!=NULL) {
+        unsigned long p= strtoul(param[1], NULL, 10);
+        if (param[2] != NULL){
+            unsigned long prio= strtoul(param[2], NULL, 10);
+            setpriority(PRIO_PROCESS, p,(int)prio );
+            printf("Prioridad del proceso %lu es %lu\n" ,p, prio);
+        }else{
+            printf("Prioridad del proceso %lu es %d\n" ,p, getpriority(PRIO_PROCESS, p));
+        }
+    }else{
+        printf("Prioridad del proceso %d es %d\n", getpid(), getpriority(PRIO_PROCESS, getpid()) );
+    }
+    return 1;
+}
+
+int dofork (char *param[]){
+    int pid;
+    if ((pid=fork())==-1){
+        perror ("Imposible crear proceso\n");
+    }else if (pid ==0){
+        printf("Ejecutando proceso %d\n", getpid());
+    }else{
+        waitpid(pid, NULL, 0);
+    }
+    return 1;
+}
+
+int execute ( char *param[]){
+    int pid ;
+    if (param[1]!=NULL) {
+        if (execvp(param[1], param) == -1) {
+            perror("Imposible ejecutar");
         }
     }
 }
