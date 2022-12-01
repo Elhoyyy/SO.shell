@@ -83,7 +83,9 @@ void Do_pmap (void);
 void do_AllocateShared (char *tr[],MemoryList Listamemoria);
 int dopriority ( char *param[]);
 int dofork ( char *param[]);
-int main(char* env[]){
+int doshowvar ( char * param []);
+void MuestraEntorno ( char *entorno[], char *nombre_variable);
+int main(int arg, char *env[]){
     int acabar=0;
     char cadena[N] ;
     char *trozos[N/2];
@@ -91,9 +93,6 @@ int main(char* env[]){
     createList(&Lista);
     MemoryList Listamemoria;
     createMemoryList(&Listamemoria);
-    JobList ListaJob;
-    createJobList(&ListaJob);
-
 
     while ( acabar!=-1 ){
 
@@ -109,6 +108,7 @@ int main(char* env[]){
     free (Lista);
     deleteMemorylist(Listamemoria);
     free(Listamemoria);
+    return 1;
 }
 
 char  LetraTF (mode_t m)
@@ -236,7 +236,7 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
     }else if ( strcmp (param[0], "priority") == 0 ){
         i = dopriority (param);
     }else if(strcmp(param[0], "showvar")==0){
-       // i = doshowvar (param);
+        i = doshowvar (param);
 
     }else if(strcmp(param[0], "changevar")==0){
        // i = dochangevar (param);
@@ -1399,3 +1399,17 @@ int execute ( char *param[]){
         }
     }
 }
+
+extern char ** environ;
+
+int doshowvar ( char *param[]){
+    MuestraEntorno(environ,"main arg3");
+    return 1;
+}
+
+void MuestraEntorno ( char *entorno[], char *nombre_variable){
+    for( int i = 0; entorno[i]!=NULL; i++){
+        printf("%p->%s [%d]=(%p) %s \n", &entorno[i], nombre_variable, i, entorno[i], entorno[i]);
+    }
+}
+
