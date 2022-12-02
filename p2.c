@@ -1,4 +1,3 @@
-
 /*TITULO:
 SISTEMAS OPERATIVOS Práctica 1
 AUTOR 1: Eloy Sastre Sobrino LOGIN 1: eloy.sastre
@@ -34,7 +33,79 @@ DATE: 20/10/2022
 #define MMAP 3
 #define N 48
 #define TAMANO 2048
+/*
+static struct SEN sigstrnum[]={
+        {"HUP", SIGHUP},
+        {"INT", SIGINT},
+        {"QUIT", SIGQUIT},
+        {"ILL", SIGILL},
+        {"TRAP", SIGTRAP},
+        {"ABRT", SIGABRT},
+        {"IOT", SIGIOT},
+        {"BUS", SIGBUS},
+        {"FPE", SIGFPE},
+        {"KILL", SIGKILL},
+        {"USR1", SIGUSR1},
+        {"SEGV", SIGSEGV},
+        {"USR2", SIGUSR2},
+        {"PIPE", SIGPIPE},
+        {"ALRM", SIGALRM},
+        {"TERM", SIGTERM},
+        {"CHLD", SIGCHLD},
+        {"CONT", SIGCONT},
+        {"STOP", SIGSTOP},
+        {"TSTP", SIGTSTP},
+        {"TTIN", SIGTTIN},
+        {"TTOU", SIGTTOU},
+        {"URG", SIGURG},
+        {"XCPU", SIGXCPU},
+        {"XFSZ", SIGXFSZ},
+        {"VTALRM", SIGVTALRM},
+        {"PROF", SIGPROF},
+        {"WINCH", SIGWINCH},
+        {"IO", SIGIO},
+        {"SYS", SIGSYS},
 
+
+#ifdef SIGPOLL
+        {"POLL", SIGPOLL},
+#endif
+#ifdef SIGPWR
+        {"PWR", SIGPWR},
+#endif
+#ifdef SIGEMT
+        {"EMT", SIGEMT},
+#endif
+#ifdef SIGINFO
+        {"INFO", SIGINFO},
+#endif
+#ifdef SIGSTKFLT
+        {"STKFLT", SIGSTKFLT},
+#endif
+#ifdef SIGCLD
+        {"CLD", SIGCLD},
+#endif
+#ifdef SIGLOST
+        {"LOST", SIGLOST},
+#endif
+#ifdef SIGCANCEL
+        {"CANCEL", SIGCANCEL},
+#endif
+#ifdef SIGTHAW
+        {"THAW", SIGTHAW},
+#endif
+#ifdef SIGFREEZE
+        {"FREEZE", SIGFREEZE},
+#endif
+#ifdef SIGLWP
+        {"LWP", SIGLWP},
+#endif
+#ifdef SIGWAITING
+        {"WAITING", SIGWAITING},
+#endif
+        {NULL,-1},
+};
+*/
 
 void leerEntrada(char *cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
@@ -65,6 +136,7 @@ int domemfill(char *param[]);
 int domemory(char *param[],MemoryList listamemoria);
 int domemdump(char *param[]);
 int dorecurse(char *param[]);
+int OurExecvpe(const char *file, char *const argv[], char *const envp[]);
 
 void borrar_recursivo(char * dir);
 void ListarDirectorio(char *dir,int hid,int l,int acc,int link);
@@ -84,15 +156,24 @@ void do_AllocateShared (char *tr[],MemoryList Listamemoria);
 int dopriority ( char *param[]);
 int dofork ( char *param[]);
 int doshowvar ( char * param []);
+int dochangevar(char* param[]);
 void MuestraEntorno ( char *entorno[], char *nombre_variable);
-int main(int arg, char *env[]){
+int BuscarVariable(char* variable,char* entorno[]);
+int CambiarVariable(char * var, char * valor, char *e[]);
+int doshowenv(char *param[]);
+
+char **puntero;
+int main(int arg,char *argv[], char *env[]){
     int acabar=0;
+    int i=0;
     char cadena[N] ;
     char *trozos[N/2];
     tList Lista;
     createList(&Lista);
     MemoryList Listamemoria;
     createMemoryList(&Listamemoria);
+    puntero=env;
+
 
     while ( acabar!=-1 ){
 
@@ -239,22 +320,22 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
         i = doshowvar (param);
 
     }else if(strcmp(param[0], "changevar")==0){
-       // i = dochangevar (param);
+        i = dochangevar (param);
 
     }else if(strcmp(param[0], "showenv")==0){
-      //  i = doshowenv (param);
+        i = doshowenv (param);
 
     }else if(strcmp(param[0], "listjobs")==0){
-      //  i = dolistjobs (param);
+        //  i = dolistjobs (param);
 
     }else if(strcmp(param[0], "deljobs")==0){
-      //  i = dodeljobs (param);
+        //  i = dodeljobs (param);
 
     }else if(strcmp(param[0], "job")==0){
-      //  i = dojob (param);
+        //  i = dojob (param);
 
     }else if(strcmp(param[0], "execute")==0){
-      //  i = doexecute (param);
+        //  i = doexecute (param);
 
     }else if(strcmp(param[0], "fork")==0){
         i = dofork (param);
@@ -1402,8 +1483,34 @@ int execute ( char *param[]){
 
 extern char ** environ;
 
+
+int doshowenv(char *param[]){
+    if(param[1]==NULL){
+        MuestraEntorno(puntero,"main arg3");
+    }else{
+        if(strcmp(param[1],"-addr")==0){
+            printf("environ: %p (almacenado en %p)\n",&environ[0],&environ);
+            printf("main arg3: %p (almacenado en %p)\n",&environ[0],&puntero);
+        }else if(strcmp(param[1],"-environ")==0){
+            MuestraEntorno(environ,"environ");
+        }
+    }
+    return 1;
+}
+
 int doshowvar ( char *param[]){
-    MuestraEntorno(environ,"main arg3");
+    if(param[1]==NULL){
+    MuestraEntorno(puntero,"main arg3");
+    }else{
+        int pos;
+        if((pos=BuscarVariable(param[1],environ))==-1){
+            perror("No esta en la lista de variables");
+        }else{
+            printf("Con arg3 main %s (%p) %p\n",puntero[pos],puntero[pos],&puntero[pos]);
+            printf("Con environ %s (%p) %p\n",environ[pos],environ[pos],environ[pos]);
+            printf("Con getenv %s %p\n",getenv(param[1]),getenv(param[1]));
+        }
+    }
     return 1;
 }
 
@@ -1412,4 +1519,117 @@ void MuestraEntorno ( char *entorno[], char *nombre_variable){
         printf("%p->%s [%d]=(%p) %s \n", &entorno[i], nombre_variable, i, entorno[i], entorno[i]);
     }
 }
+
+
+int dochangevar(char *param[]){
+    if (param[1] != NULL) {
+    if (strcmp(param[1], "-a") == 0) {
+        CambiarVariable(param[2],param[3],puntero);
+}
+    else if (strcmp(param[1], "-e") == 0) {
+        CambiarVariable(param[2],param[3],environ);
+} else if (strcmp(param[1], "-p") == 0) {
+        char * aux;
+        strcpy(aux,param[2]);
+        strcat(aux,"=");
+        strcat(aux,(param[3]));
+        putenv(aux);
+    }else {
+        MuestraEntorno(puntero,"main arg3");
+}
+    }
+return 1;
+
+
+}
+/*
+void Cmd_fork (char *tr[])
+{
+	pid_t pid;
+
+	if ((pid=fork())==0){
+
+		printf ("ejecutando proceso %d\n", getpid());
+	}
+	else if (pid!=-1)
+		waitpid (pid,NULL,0);
+}
+ */
+
+int CambiarVariable(char * var, char * valor, char *e[]) {
+  int pos;
+  char *aux;
+
+  if ((pos=BuscarVariable(var,e))==-1)
+    return(-1);
+
+  if ((aux=(char *)malloc(strlen(var)+strlen(valor)+2))==NULL)
+	return -1;
+  strcpy(aux,var);
+  strcat(aux,"=");
+  strcat(aux,valor);
+  e[pos]=aux;
+  return (pos);
+}
+int BuscarVariable (char * var, char *e[])  /*busca una variable en el entorno que se le pasa como parámetro*/
+{
+    int pos=0;
+    char aux[TAMANO];
+
+    strcpy (aux,var);
+    strcat (aux,"=");
+
+    while (e[pos]!=NULL)
+        if (!strncmp(e[pos],aux,strlen(aux)))
+            return (pos);
+        else
+            pos++;
+    errno=ENOENT;   /*no hay tal variable*/
+    return(-1);
+}
+/*
+char * Ejecutable (char *s)
+{
+	char path[TAMANO];
+	static char aux2[TAMANO];
+	struct stat st;
+	char *p;
+	if (s==NULL || (p=getenv("PATH"))==NULL)
+		return s;
+	if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
+        return s;
+	strncpy (path, p, TAMANO);
+	for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
+       sprintf (aux2,"%s/%s",p,s);
+	   if (lstat(aux2,&st)!=-1)
+		return aux2;
+	}
+	return s;
+}
+
+int OurExecvpe(const char *file, char *const argv[], char *const envp[])
+{
+   return (execve(Ejecutable(file),argv, envp);
+}
+
+int ValorSenal(char * sen)
+{
+  int i;
+  for (i=0; sigstrnum[i].nombre!=NULL; i++)
+  	if (!strcmp(sen, sigstrnum[i].nombre))
+		return sigstrnum[i].senal;
+  return -1;
+}
+
+
+char *NombreSenal(int sen)
+{
+ int i;
+  for (i=0; sigstrnum[i].nombre!=NULL; i++)
+  	if (sen==sigstrnum[i].senal)
+		return sigstrnum[i].nombre;
+ return ("SIGUNKNOWN");
+}
+ */
+
 
