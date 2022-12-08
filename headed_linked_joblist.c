@@ -58,5 +58,3 @@ void deleteAtJPosition (posJ p, JobList L) {
     free(p);
 
 }
-#include "headed_linked_joblist.h"
-
