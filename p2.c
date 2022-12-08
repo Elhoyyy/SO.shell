@@ -27,7 +27,6 @@ DATE: 20/10/2022
 #include <sys/shm.h>
 #include <sys/mman.h>
 #include <sys/resource.h>
-#include <unistd.h>
 
 #define MALLOC 1
 #define SHARED 2
@@ -39,8 +38,6 @@ DATE: 20/10/2022
 
 /*las siguientes funciones nos permiten obtener el nombre de una senal a partir
 del número y viceversa */
-#define MAXVAR 2048
-#define MAXNAME 2048
 struct SEN {
     char * nombre;
     int  senal;
@@ -144,7 +141,7 @@ char *NombreSenal(int sen)  /*devuelve el nombre senal a partir de la senal*/
 
 void leerEntrada(char *cadena);
 int TrocearCadena(char *cadena, char *trozos[]);
-int ProcesarEntrada(char *trozos[],tList Lista,MemoryList Listamemoria);
+int ProcesarEntrada(char *trozos[],tList Lista,MemoryList Listamemoria, JobList Listajobs);
 void imprimirPrompt();
 int doautores(char *param[]);
 int dopid(char *param[]);
@@ -157,13 +154,14 @@ int dobye();
 int doinfosis(char *param[]);
 int doayuda(char *param[]);
 char * infoparametros(char *cmd);
+char *NombreSenal(int sen);
 int doayuda(char *param[]);
 int dostats(char *param[]);
 int dolist(char *param[]);
 int dodelete(char *param[]);
 int dodeltree(char *param[]);
 int docreate(char *param[]);
-int docomando (char *param[], tList Lista,MemoryList Listamemoria);
+int docomando (char *param[], tList Lista,MemoryList Listamemoria, JobList Listajobs);
 int doallocate(char *param[],MemoryList Listamemoria);
 int dodeallocate(char *param[],MemoryList Listamemoria);
 int doinout(char *param[]);
@@ -171,7 +169,7 @@ int domemfill(char *param[]);
 int domemory(char *param[],MemoryList listamemoria);
 int domemdump(char *param[]);
 int dorecurse(char *param[]);
-int OurExecvpe(char *file, char *const argv[], char *const envp[]);
+void tipostatus (posJ p);
 
 void borrar_recursivo(char * dir);
 void ListarDirectorio(char *dir,int hid,int l,int acc,int link);
@@ -190,8 +188,10 @@ void Do_pmap (void);
 void do_AllocateShared (char *tr[],MemoryList Listamemoria);
 int dopriority ( char *param[]);
 int dofork ( char *param[]);
+int dolistjobs ( char *param[], JobList L);
 int doshowvar ( char * param []);
 int dochangevar(char* param[]);
+int OurExecvpe(char *file, char *const argv[], char *const envp[]);
 void MuestraEntorno ( char *entorno[], char *nombre_variable);
 int BuscarVariable(char* variable,char* entorno[]);
 int CambiarVariable(char * var, char * valor, char *e[]);
@@ -200,40 +200,43 @@ char * Ejecutable (char *s);
 int doexecute(char* param[]);
 int puntos(char *param[]);
 
-
 char **puntero;
+
 int main(int arg,char *argv[], char *env[]){
-int acabar=0;
-int i=0;
-char cadena[N] ;
-char *trozos[N/2];
-tList Lista;
-createList(&Lista);
-MemoryList Listamemoria;
-createMemoryList(&Listamemoria);
-puntero=env;
+    int acabar=0;
+    int i=0;
+    char cadena[N] ;
+    char *trozos[N/2];
+    tList Lista;
+    createList(&Lista);
+    MemoryList Listamemoria;
+    createMemoryList(&Listamemoria);
+    JobList  Listajobs;
+    createJobList(&Listajobs);
+
+    puntero=env;
 
 
-while ( acabar!=-1 ){
+    while ( acabar!=-1 ){
 
-    imprimirPrompt();
-    leerEntrada(cadena);
-    insertItem(cadena,Lista);
-    TrocearCadena(cadena, trozos);
-    acabar=ProcesarEntrada(trozos,Lista,Listamemoria);
+        imprimirPrompt();
+        leerEntrada(cadena);
+        insertItem(cadena,Lista);
+        TrocearCadena(cadena, trozos);
+        acabar=ProcesarEntrada(trozos,Lista,Listamemoria, Listajobs);
 
-}
+    }
 
-deleteList(Lista);
-free (Lista);
-deleteMemorylist(Listamemoria);
-free(Listamemoria);
-return 1;
+    deleteList(Lista);
+    free (Lista);
+    deleteMemorylist(Listamemoria);
+    free(Listamemoria);
+    return 1;
 }
 
 char  LetraTF (mode_t m)
 {
-switch (m&S_IFMT) { /*and bit a bit con los bits de formato,0170000 */
+    switch (m&S_IFMT) { /*and bit a bit con los bits de formato,0170000 */
         case S_IFSOCK: return 's'; /*socket */
         case S_IFLNK: return 'l'; /*symbolic link*/
         case S_IFREG: return '-'; /* fichero normal*/
@@ -289,7 +292,7 @@ void imprimirPrompt(){
     printf("$");
 }
 
-int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
+int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria, JobList Listajobs){
     char **param=trozos;
     int i=0;
     if (param[0]==NULL){return i;}
@@ -304,7 +307,7 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
     }else if(strcmp(param[0], "hist")==0){
         i=dohist(param,Lista);
     }else if(strcmp(param[0], "comando")==0){
-        i=docomando(param,Lista,Listamemoria);
+        i=docomando(param,Lista,Listamemoria, Listajobs);
     }else if(strcmp(param[0], "salir")==0){
         i=dosalir();
     }else if(strcmp(param[0], "exit")==0){
@@ -365,22 +368,22 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria){
         i = doshowenv (param);
 
     }else if(strcmp(param[0], "listjobs")==0){
-        //  i = dolistjobs (param);
+         i = dolistjobs (param, Listajobs);
 
     }else if(strcmp(param[0], "deljobs")==0){
-        //  i = dodeljobs (param);
+        //  i = dodeljobs (param, Listajobs);
 
     }else if(strcmp(param[0], "job")==0){
         //  i = dojob (param);
 
     }else if(strcmp(param[0], "execute")==0){
-        i = doexecute (param);
+        //  i = doexecute (param);
 
     }else if(strcmp(param[0], "fork")==0){
         i = dofork (param);
 
     }else {
-        i= puntos(param);
+        printf("\nEste comando no existe\n");
     }
     return i;
 }
@@ -642,7 +645,7 @@ int dohist(char* param[],tList Lista){
     return 1;
 }
 
-int docomando (char * param[], tList Lista,MemoryList Listamemoria){
+int docomando (char * param[], tList Lista,MemoryList Listamemoria, JobList Listajobs){
     if(param[1]!=NULL){
         long n= strtol(param[1],LNULL,10);
         tPosL p;
@@ -660,7 +663,7 @@ int docomando (char * param[], tList Lista,MemoryList Listamemoria){
 
                     strcpy(cmd,getChar(p, Lista));
                     TrocearCadena(cmd, trozos2);
-                    ProcesarEntrada(trozos2,Lista,Listamemoria);
+                    ProcesarEntrada(trozos2,Lista,Listamemoria,Listajobs);
                     break;
                 }
                 p = p->next;
@@ -1511,6 +1514,14 @@ int dofork (char *param[]){
     return 1;
 }
 
+int execute ( char *param[]){
+    int pid ;
+    if (param[1]!=NULL) {
+        if (execvp(param[1], param) == -1) {
+            perror("Imposible ejecutar");
+        }
+    }
+}
 
 extern char ** environ;
 
@@ -1574,6 +1585,49 @@ int dochangevar(char *param[]){
 
 }
 
+
+int dolistjobs (char *param[], JobList L){
+    posJ p;
+    char *statuschar = NULL;
+    for (p = L->next; p != NULL; p = p->next) {
+        tipostatus(p);
+        struct tm *ctime = localtime(&p->time);
+        if (strcmp(p->status,"FINISHED")==0)  {
+            printf("%d p=%d %ld %s (%03d) %s\n", p->pid,
+                   getpriority(PRIO_PROCESS, p->pid), p->time, p->status, p->returnstatus, p->lineacomando);
+        }
+        else if((strcmp(p->status,"SIGNALED")==0) || (strcmp(p->status,"STOPPED")==0) )
+        {
+            strcpy(statuschar, NombreSenal(p->returnstatus));
+
+            printf("%d p=%d %ld %s (%3s) %s\n", p->pid,
+                   getpriority(PRIO_PROCESS, p->pid), p->time, p->status, statuschar, p->lineacomando);
+        }
+        else if (strcmp(p->status,"ACTIVE")==0)  {
+
+            printf("%d p=%d %ld %s (%03d) %s\n", p->pid,
+                   getpriority(PRIO_PROCESS, p->pid), p->time, p->status, p->returnstatus, p->lineacomando);
+        }
+    }
+    return 1;
+}
+
+void tipostatus (posJ p){
+    if (waitpid(p->pid,&p->returnstatus, WNOHANG |WUNTRACED |WCONTINUED) == p->pid){
+        if(WIFEXITED(p->returnstatus)){
+            strcpy(p->status, "TERMINADO");
+            p->returnstatus = WEXITSTATUS(p->returnstatus);
+        }else if(WIFSIGNALED(p->returnstatus)){
+            strcpy(p->status, "SENALADO");
+            p->returnstatus = WTERMSIG(p->returnstatus);
+        }else if(WIFSTOPPED(p->returnstatus)){
+            strcpy(p->status, "STOPPED");
+            p->returnstatus = WTERMSIG(p->returnstatus);
+        }else if(WIFCONTINUED(p->returnstatus))
+            strcpy(p->status, "ACTIVO");
+    }
+}
+
 int doexecute(char* param[]){
     int i=0;
     char *arg[TAMANO];
@@ -1585,11 +1639,63 @@ int doexecute(char* param[]){
     OurExecvpe(param[1],arg,environ);
     return 0;
 }
-/*
+char * Ejecutable (char *s)
+{
+    char path[TAMANO];
+    static char aux2[TAMANO];
+    struct stat st;
+    char *p;
+    if (s==NULL || (p=getenv("PATH"))==NULL)
+        return s;
+    if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
+        return s;
+    strncpy (path, p, TAMANO);
+    for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
+        sprintf (aux2,"%s/%s",p,s);
+        if (lstat(aux2,&st)!=-1)
+            return aux2;
+    }
+    return s;
+}
+
+int OurExecvpe(char *file, char *const argv[], char *const envp[])
+{
+    return (execve(Ejecutable(file),argv, envp));
+}
+
+int puntos(char *param[]){
+    int j;
+    int i=0;
+    char* arg[TAMANO];
+    while((j= BuscarVariable(param[i],environ))!=-1){
+        arg[i]=environ[j];
+        i++;
+    }
+    char *ejecutable=param[i];
+    char *opt[TAMANO];
+    j=0;
+    while(param[i]!=NULL && param[i][0]!='&' && param[i][0]!='@'){
+        opt[j]=param[i];
+        i++;
+        j++;
+    }
+    if(param[i]!=NULL&&param[i][0]=='@'){
+        char *aux=param[i]+1;
+        long prio= strtol(aux,NULL,10);
+        //setpriority(PRIO_PROCESS, ,(int)prio );
+        i++;
+    }else if(param[i]!=NULL&&param[i][0]=='&'){
+        //pasar background
+    }
+    OurExecvpe(ejecutable,opt,arg);
+    return 1;
+}/*
 void Cmd_fork (char *tr[])
 {
 	pid_t pid;
+
 	if ((pid=fork())==0){
+
 		printf ("ejecutando proceso %d\n", getpid());
 	}
 	else if (pid!=-1)
@@ -1628,6 +1734,7 @@ int BuscarVariable (char * var, char *e[])  /*busca una variable en el entorno q
     errno=ENOENT;   /*no hay tal variable*/
     return(-1);
 }
+/*
 char * Ejecutable (char *s)
 {
 	char path[TAMANO];
@@ -1647,53 +1754,19 @@ char * Ejecutable (char *s)
 	return s;
 }
 
-int OurExecvpe(char *file, char *const argv[], char *const envp[])
+int OurExecvpe(const char *file, char *const argv[], char *const envp[])
 {
-return (execve(Ejecutable(file),argv, envp));
+   return (execve(Ejecutable(file),argv, envp);
 }
 
-int puntos(char *param[]){
-    int j;
-    int i=0;
-    char* arg[TAMANO];
-    while((j= BuscarVariable(param[i],environ))!=-1){
-        arg[i]=environ[j];
-        i++;
-    }
-    char *ejecutable=param[i];
-    char *opt[TAMANO];
-    j=0;
-    while(param[i]!=NULL && param[i][0]!='&' && param[i][0]!='@'){
-        opt[j]=param[i];
-        i++;
-        j++;
-    }
-    if(param[i]!=NULL&&param[i][0]=='@'){
-        char *aux=param[i]+1;
-        long prio= strtol(aux,NULL,10);
-        //setpriority(PRIO_PROCESS, ,(int)prio );
-        i++;
-    }else if(param[i]!=NULL&&param[i][0]=='&'){
-        //pasar background
-    }
-    OurExecvpe(ejecutable,opt,arg);
-    return 1;
-}
- /*
 int ValorSenal(char * sen)
 {
-int i;
-for (i=0; sigstrnum[i].nombre!=NULL; i++)
-  if (!strcmp(sen, sigstrnum[i].nombre))
-    return sigstrnum[i].senal;
-return -1;
+  int i;
+  for (i=0; sigstrnum[i].nombre!=NULL; i++)
+  	if (!strcmp(sen, sigstrnum[i].nombre))
+		return sigstrnum[i].senal;
+  return -1;
 }
-char *NombreSenal(int sen)
-{
-int i;
-for (i=0; sigstrnum[i].nombre!=NULL; i++)
-  if (sen==sigstrnum[i].senal)
-    return sigstrnum[i].nombre;
-return ("SIGUNKNOWN");
-}
+
 */
+
