@@ -21,12 +21,13 @@ typedef struct JobNode* posJ;
 
 struct JobNode{
     int pid;
-    int status;
+    char * status;
     int priority;
+    int returnstatus;
     char * lineacomando;
     time_t time;
     posJ next;
-}JobNode;
+};
 
 typedef posJ JobList;
 
@@ -38,3 +39,4 @@ void deleteAtJPosition (posJ p, JobList L);
 
 
 #endif //PRUEBA_HEADED_LINKED_JOBLIST_H
+
