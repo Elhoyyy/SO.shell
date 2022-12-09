@@ -1593,20 +1593,20 @@ int dolistjobs (char *param[], JobList L){
         tipostatus(p);
         struct tm *ctime = localtime(&p->time);
         if (strcmp(p->status,"TERMINADO")==0)  {
-            printf("%d p=%d %ld %s (%03d) %s\n", p->pid,
-                   getpriority(PRIO_PROCESS, p->pid), p->time, p->status, p->returnstatus, p->lineacomando);
+            printf("%d p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid,
+                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
         else if((strcmp(p->status,"SEÑALADO")==0) || (strcmp(p->status,"STOPPED")==0) )
         {
             statuschar= NombreSenal(p->returnstatus);
 
-            printf("%d p=%d %ld %s (%3s) %s\n", p->pid,
-                   getpriority(PRIO_PROCESS, p->pid), p->time, p->status, statuschar, p->lineacomando);
+            printf("%d p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid,
+                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
         else if (strcmp(p->status,"ACTIVO")==0)  {
 
-            printf("%d p=%d %ld %s (%03d) %s\n", p->pid,
-                   getpriority(PRIO_PROCESS, p->pid), p->time, p->status, p->returnstatus, p->lineacomando);
+            printf("%d p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid,
+                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
     }
     return 1;
@@ -1697,7 +1697,16 @@ int puntos(char *param[],JobList L){
         }else{
             time_t tiempoahora;
             time(&tiempoahora);
-            insertJobList(L,pid,"ACTIVE", getpriority(PRIO_PROCESS,pid),param[0],tiempoahora);
+            char lineacomando[TAMANO];
+            strcpy(lineacomando,ejecutable);
+            i=1;
+            while(opt[i]!=NULL){
+                char *boom=opt[i];
+                strcat(lineacomando," ");
+                strcat(lineacomando,boom);
+                i++;
+            }
+            insertJobList(L,pid,"ACTIVO", getpriority(PRIO_PROCESS,pid),lineacomando,tiempoahora);
         }
     }else{
     if(pid==0){
