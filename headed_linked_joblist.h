@@ -21,6 +21,7 @@ typedef struct JobNode* posJ;
 
 struct JobNode{
     int pid;
+    uid_t  uid;
     char * status;
     int priority;
     int returnstatus;
@@ -33,7 +34,7 @@ typedef posJ JobList;
 
 
 void createJobList(JobList * L);
-bool insertJobList(JobList L, int pid, char* status, int priority , char *lineacomnando, time_t tiempo);
+bool insertJobList(JobList L, int pid, char* status, int priority , char *lineacomnando, time_t tiempo, uid_t  uid);
 void deleteAtJPosition (posJ p, JobList L);
 
 
