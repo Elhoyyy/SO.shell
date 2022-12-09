@@ -1,3 +1,4 @@
+
 //
 // Created by elhoyyy on 25/11/22.
 //
@@ -17,16 +18,17 @@ bool createNodeJob( posJ* p){
     return *p!=NULL;
 }
 
-bool insertJobList(JobList L, int pid, char* status, int priority , char *lineacomnando, time_t tiempo){
+bool insertJobList(JobList L, int pid, char* status, int priority , char *lineacomnando, time_t tiempo, uid_t  uid){
     posJ p, q; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
 
-   if (!createNodeJob(&q)) //SI NO HAY NODO SE RETORNA FALSO.
+    if (!createNodeJob(&q)) //SI NO HAY NODO SE RETORNA FALSO.
         return false;
     q->pid=pid;
     q->status=status;
     q->priority=priority;
     strcpy(q->lineacomando,lineacomnando);
     q->time=tiempo;
+    q->uid=uid;
     q->next = NULL;
     if (L->next == NULL) { //LISTA VACÍA.
         L->next = q;
@@ -52,6 +54,7 @@ void deleteAtJPosition (posJ p, JobList L) {
         p->priority=q->priority;
         p->time=q->time;
         p->next = q->next;
+        p->uid = q->uid;
 
         p = q;
     }
