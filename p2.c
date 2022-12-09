@@ -198,7 +198,7 @@ int CambiarVariable(char * var, char * valor, char *e[]);
 int doshowenv(char *param[]);
 char * Ejecutable (char *s);
 int doexecute(char* param[]);
-int puntos(char *param[]);
+int puntos(char *param[],JobList L);
 
 char **puntero;
 
@@ -368,7 +368,7 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria, JobList
         i = doshowenv (param);
 
     }else if(strcmp(param[0], "listjobs")==0){
-         i = dolistjobs (param, Listajobs);
+        i = dolistjobs (param, Listajobs);
 
     }else if(strcmp(param[0], "deljobs")==0){
         //  i = dodeljobs (param, Listajobs);
@@ -377,13 +377,13 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria, JobList
         //  i = dojob (param);
 
     }else if(strcmp(param[0], "execute")==0){
-        //  i = doexecute (param);
+        i = doexecute (param);
 
     }else if(strcmp(param[0], "fork")==0){
         i = dofork (param);
 
     }else {
-        printf("\nEste comando no existe\n");
+        i= puntos(param,Listajobs);
     }
     return i;
 }
@@ -1592,18 +1592,18 @@ int dolistjobs (char *param[], JobList L){
     for (p = L->next; p != NULL; p = p->next) {
         tipostatus(p);
         struct tm *ctime = localtime(&p->time);
-        if (strcmp(p->status,"FINISHED")==0)  {
+        if (strcmp(p->status,"TERMINADO")==0)  {
             printf("%d p=%d %ld %s (%03d) %s\n", p->pid,
                    getpriority(PRIO_PROCESS, p->pid), p->time, p->status, p->returnstatus, p->lineacomando);
         }
-        else if((strcmp(p->status,"SIGNALED")==0) || (strcmp(p->status,"STOPPED")==0) )
+        else if((strcmp(p->status,"SEÑALADO")==0) || (strcmp(p->status,"STOPPED")==0) )
         {
-            strcpy(statuschar, NombreSenal(p->returnstatus));
+            statuschar= NombreSenal(p->returnstatus);
 
             printf("%d p=%d %ld %s (%3s) %s\n", p->pid,
                    getpriority(PRIO_PROCESS, p->pid), p->time, p->status, statuschar, p->lineacomando);
         }
-        else if (strcmp(p->status,"ACTIVE")==0)  {
+        else if (strcmp(p->status,"ACTIVO")==0)  {
 
             printf("%d p=%d %ld %s (%03d) %s\n", p->pid,
                    getpriority(PRIO_PROCESS, p->pid), p->time, p->status, p->returnstatus, p->lineacomando);
@@ -1615,16 +1615,16 @@ int dolistjobs (char *param[], JobList L){
 void tipostatus (posJ p){
     if (waitpid(p->pid,&p->returnstatus, WNOHANG |WUNTRACED |WCONTINUED) == p->pid){
         if(WIFEXITED(p->returnstatus)){
-            strcpy(p->status, "TERMINADO");
+            p->status= "TERMINADO";
             p->returnstatus = WEXITSTATUS(p->returnstatus);
         }else if(WIFSIGNALED(p->returnstatus)){
-            strcpy(p->status, "SENALADO");
+            p->status= "SEÑALADO";
             p->returnstatus = WTERMSIG(p->returnstatus);
         }else if(WIFSTOPPED(p->returnstatus)){
-            strcpy(p->status, "STOPPED");
+            p->status= "STOPPED";
             p->returnstatus = WTERMSIG(p->returnstatus);
         }else if(WIFCONTINUED(p->returnstatus))
-            strcpy(p->status, "ACTIVO");
+            p->status= "ACTIVO";
     }
 }
 
@@ -1637,7 +1637,7 @@ int doexecute(char* param[]){
     }
 
     OurExecvpe(param[1],arg,environ);
-    return 0;
+    return 1;
 }
 char * Ejecutable (char *s)
 {
@@ -1663,9 +1663,12 @@ int OurExecvpe(char *file, char *const argv[], char *const envp[])
     return (execve(Ejecutable(file),argv, envp));
 }
 
-int puntos(char *param[]){
+int puntos(char *param[],JobList L){
     int j;
     int i=0;
+    int pid, pid2;
+    pid=fork();
+    pid2=getpid();
     char* arg[TAMANO];
     while((j= BuscarVariable(param[i],environ))!=-1){
         arg[i]=environ[j];
@@ -1679,23 +1682,41 @@ int puntos(char *param[]){
         i++;
         j++;
     }
-    if(param[i]!=NULL&&param[i][0]=='@'){
+    if(param[i]!=NULL && param[i][0]=='@'){
         char *aux=param[i]+1;
         long prio= strtol(aux,NULL,10);
-        //setpriority(PRIO_PROCESS, ,(int)prio );
+        setpriority(PRIO_PROCESS,pid2 ,(int)prio );
         i++;
     }else if(param[i]!=NULL&&param[i][0]=='&'){
-        //pasar background
+        if(pid==0){
+            if(arg[0]!=NULL){
+                OurExecvpe(ejecutable,opt,arg);
+            }else{
+                OurExecvpe(ejecutable,opt,environ);
+            }
+        }else{
+            time_t tiempoahora;
+            time(&tiempoahora);
+            insertJobList(L,pid,"ACTIVE", getpriority(PRIO_PROCESS,pid),param[0],tiempoahora);
+        }
+    }else{
+    if(pid==0){
+    if(arg[0]!=NULL){
+        OurExecvpe(ejecutable,opt,arg);
+    }else{
+
+        OurExecvpe(ejecutable,opt,environ);
     }
-    OurExecvpe(ejecutable,opt,arg);
+    }else{
+        waitpid(pid,NULL,0);
+    }
+    }
     return 1;
 }/*
 void Cmd_fork (char *tr[])
 {
 	pid_t pid;
-
 	if ((pid=fork())==0){
-
 		printf ("ejecutando proceso %d\n", getpid());
 	}
 	else if (pid!=-1)
@@ -1753,12 +1774,10 @@ char * Ejecutable (char *s)
 	}
 	return s;
 }
-
 int OurExecvpe(const char *file, char *const argv[], char *const envp[])
 {
    return (execve(Ejecutable(file),argv, envp);
 }
-
 int ValorSenal(char * sen)
 {
   int i;
@@ -1767,6 +1786,4 @@ int ValorSenal(char * sen)
 		return sigstrnum[i].senal;
   return -1;
 }
-
 */
-
