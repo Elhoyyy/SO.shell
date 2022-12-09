@@ -17,15 +17,15 @@ bool createNodeJob( posJ* p){
     return *p!=NULL;
 }
 
-bool insertJobList(JobList L, int pid, int status, int priority , char *lineacomnando, time_t tiempo){
+bool insertJobList(JobList L, int pid, char* status, int priority , char *lineacomnando, time_t tiempo){
     posJ p, q; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
 
-    if (!createNodeJob(&q)) //SI NO HAY NODO SE RETORNA FALSO.
+   if (!createNodeJob(&q)) //SI NO HAY NODO SE RETORNA FALSO.
         return false;
     q->pid=pid;
     q->status=status;
     q->priority=priority;
-    strcpy(q->lineacomando,lineacomnando);
+    q->lineacomando=lineacomnando;
     q->time=tiempo;
     q->next = NULL;
     if (L->next == NULL) { //LISTA VACÍA.
