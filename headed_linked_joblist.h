@@ -24,9 +24,9 @@ struct JobNode{
     char * status;
     int priority;
     int returnstatus;
-    char * lineacomando;
     time_t time;
     posJ next;
+    char lineacomando[1048];
 };
 
 typedef posJ JobList;
