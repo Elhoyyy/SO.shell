@@ -1604,19 +1604,19 @@ int dolistjobs (char *param[], JobList L){
 
         struct tm *ctime = localtime(&p->time);
         if (strcmp(p->status,"TERMINADO")==0)  {
-            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
+            printf("%d %s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
                    getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
         else if((strcmp(p->status,"SEÑALADO")==0) || (strcmp(p->status,"STOPPED")==0) )
         {
             statuschar= NombreSenal(p->returnstatus);
 
-            printf("%d %12u p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, p->uid,
+            printf("%d %s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
                    getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
         else if (strcmp(p->status,"ACTIVO")==0)  {
 
-            printf("%d %12u p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, p->uid,
+            printf("%d %s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
                    getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
     }
@@ -1678,8 +1678,6 @@ int puntos(char *param[],JobList L){
     int j;
     int i=0;
     int pid, pid2;
-    struct stat st;
-    struct passwd *usuario = getpwuid(st.st_uid);
     pid=fork();
     pid2=getpid();
     char* arg[TAMANO];
@@ -1719,8 +1717,9 @@ int puntos(char *param[],JobList L){
                 strcat(lineacomando,boom);
                 i++;
             }
+            uid_t uid = getuid();
             insertJobList(L, pid, "ACTIVO", getpriority(PRIO_PROCESS,pid), lineacomando, tiempoahora,
-                           usuario->pw_uid);
+                          uid);
         }
     }else{
         if(pid==0){
@@ -1751,32 +1750,27 @@ int deljobs (char *param[], JobList L){
         int i=1;
         int term=0;
         int sig=0;
-            while(param[i]!=NULL) {
-                if (strcmp(param[1], "-term") == 0) {
-                    term=1;
-                } else if (strcmp(param[1], "-sig") == 0) {
-                    sig=1;
-
-                } else break;
-                i++;
-            }
-            while (param[i]!=NULL){
-                posJ p;
-                for (p = L; p != NULL; p = p->next) {
+        while(param[i]!=NULL) {
+            if (strcmp(param[1], "-term") == 0) {
+                term=1;
+            } else if (strcmp(param[1], "-sig") == 0) {
+                sig=1;
+            } else break;
+            i++;
+        }
+            posJ p;
+            for (p = L->next; p != NULL; p = p->next) {
                 if (WIFEXITED(p->returnstatus) && term == 1){
                     deleteAtJPosition(p, L);
-                    break;
                 }
                 else if ( WIFSIGNALED(p->returnstatus) && sig == 1){
                     deleteAtJPosition(p, L);
-                    break;
                 }
             }
-        }
     }else{
         dolistjobs(param, L);
     }
-        return 1;
+    return 1;
 
 }
 int CambiarVariable(char * var, char * valor, char *e[]) {
