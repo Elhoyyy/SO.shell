@@ -25,7 +25,7 @@ bool insertJobList(JobList L, int pid, char* status, int priority , char *lineac
     q->pid=pid;
     q->status=status;
     q->priority=priority;
-    q->lineacomando=lineacomnando;
+    strcpy(q->lineacomando,lineacomnando);
     q->time=tiempo;
     q->next = NULL;
     if (L->next == NULL) { //LISTA VACÍA.
