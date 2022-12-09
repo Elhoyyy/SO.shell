@@ -33,10 +33,9 @@ typedef posJ JobList;
 
 
 void createJobList(JobList * L);
-bool insertJobList(JobList L, int pid, int status, int priority , char *lineacomnando, time_t tiempo);
+bool insertJobList(JobList L, int pid, char* status, int priority , char *lineacomnando, time_t tiempo);
 void deleteAtJPosition (posJ p, JobList L);
 
 
 
 #endif //PRUEBA_HEADED_LINKED_JOBLIST_H
-
