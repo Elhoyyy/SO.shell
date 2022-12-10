@@ -1808,6 +1808,7 @@ int job ( char * param[], JobList L){
                 waitpid(p->pid, NULL, 0);
                 if (strcmp(p->status, "ACTIVO") == 0) {
                     printf("Proceso %d terminado normalmente. Valor devuelto %d\n", p->pid, p->returnstatus);
+                    deleteAtJPosition(p, L);
                 } else {
                     printf("Proceso %d ya está finalizado\n", p->pid);
                     break;
