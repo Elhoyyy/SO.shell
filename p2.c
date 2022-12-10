@@ -1558,13 +1558,14 @@ void MuestraEntorno ( char *entorno[], char *nombre_variable){
 
 int dochangevar(char *param[]){
     if (param[1] != NULL) {
+        char *aux  ;
+
         if (strcmp(param[1], "-a") == 0) {
             CambiarVariable(param[2],param[3],puntero);
         }
         else if (strcmp(param[1], "-e") == 0) {
             CambiarVariable(param[2],param[3],environ);
         } else if (strcmp(param[1], "-p") == 0) {
-            char *aux = NULL;
             strcpy(aux,param[2]);
             strcat(aux,"=");
             strcat(aux,(param[3]));
