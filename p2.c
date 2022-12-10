@@ -206,7 +206,6 @@ char **puntero;
 
 int main(int arg,char *argv[], char *env[]){
     int acabar=0;
-    int i=0;
     char cadena[N] ;
     char *trozos[N/2];
     tList Lista;
@@ -1516,14 +1515,6 @@ int dofork (char *param[]){
     return 1;
 }
 
-int execute ( char *param[]){
-    int pid ;
-    if (param[1]!=NULL) {
-        if (execvp(param[1], param) == -1) {
-            perror("Imposible ejecutar");
-        }
-    }
-}
 
 extern char ** environ;
 
@@ -1573,7 +1564,7 @@ int dochangevar(char *param[]){
         else if (strcmp(param[1], "-e") == 0) {
             CambiarVariable(param[2],param[3],environ);
         } else if (strcmp(param[1], "-p") == 0) {
-            char * aux;
+            char *aux = NULL;
             strcpy(aux,param[2]);
             strcat(aux,"=");
             strcat(aux,(param[3]));
@@ -1583,8 +1574,6 @@ int dochangevar(char *param[]){
         }
     }
     return 1;
-
-
 }
 
 char * Nombre(uid_t u)
