@@ -171,6 +171,7 @@ int domemory(char *param[],MemoryList listamemoria);
 int domemdump(char *param[]);
 int dorecurse(char *param[]);
 void tipostatus (posJ p);
+int job ( char * param[], JobList L);
 
 void borrar_recursivo(char * dir);
 void ListarDirectorio(char *dir,int hid,int l,int acc,int link);
@@ -375,7 +376,7 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria, JobList
         i = deljobs (param, Listajobs);
 
     }else if(strcmp(param[0], "job")==0){
-        //  i = dojob (param);
+          i = job (param, Listajobs);
 
     }else if(strcmp(param[0], "execute")==0){
         i = doexecute (param);
@@ -1604,19 +1605,19 @@ int dolistjobs (char *param[], JobList L){
 
         struct tm *ctime = localtime(&p->time);
         if (strcmp(p->status,"TERMINADO")==0)  {
-            printf("%d %s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
+            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
                    getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
         else if((strcmp(p->status,"SEÑALADO")==0) || (strcmp(p->status,"STOPPED")==0) )
         {
             statuschar= NombreSenal(p->returnstatus);
 
-            printf("%d %s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
-                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
+            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%3s) %s\n", p->pid, Nombre(p->uid),
+                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, statuschar, p->lineacomando);
         }
         else if (strcmp(p->status,"ACTIVO")==0)  {
 
-            printf("%d %s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
+            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
                    getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
     }
@@ -1719,7 +1720,7 @@ int puntos(char *param[],JobList L){
             }
             uid_t uid = getuid();
             insertJobList(L, pid, "ACTIVO", getpriority(PRIO_PROCESS,pid), lineacomando, tiempoahora,
-                          uid);
+                           uid);
         }
     }else{
         if(pid==0){
@@ -1750,27 +1751,30 @@ int deljobs (char *param[], JobList L){
         int i=1;
         int term=0;
         int sig=0;
-        while(param[i]!=NULL) {
-            if (strcmp(param[1], "-term") == 0) {
-                term=1;
-            } else if (strcmp(param[1], "-sig") == 0) {
-                sig=1;
-            } else break;
-            i++;
-        }
-            posJ p;
-            for (p = L->next; p != NULL; p = p->next) {
+            while(param[i]!=NULL) {
+                if (strcmp(param[1], "-term") == 0) {
+                    term=1;
+                } else if (strcmp(param[1], "-sig") == 0) {
+                    sig=1;
+
+                } else break;
+                i++;
+            }
+                posJ p;
+                for (p = L; p != NULL; p = p->next) {
                 if (WIFEXITED(p->returnstatus) && term == 1){
                     deleteAtJPosition(p, L);
                 }
                 else if ( WIFSIGNALED(p->returnstatus) && sig == 1){
                     deleteAtJPosition(p, L);
+
                 }
             }
+
     }else{
         dolistjobs(param, L);
     }
-    return 1;
+        return 1;
 
 }
 int CambiarVariable(char * var, char * valor, char *e[]) {
@@ -1804,35 +1808,31 @@ int BuscarVariable (char * var, char *e[])  /*busca una variable en el entorno q
     errno=ENOENT;   /*no hay tal variable*/
     return(-1);
 }
-/*
-char * Ejecutable (char *s)
-{
-	char path[TAMANO];
-	static char aux2[TAMANO];
-	struct stat st;
-	char *p;
-	if (s==NULL || (p=getenv("PATH"))==NULL)
-		return s;
-	if (s[0]=='/' || !strncmp (s,"./",2) || !strncmp (s,"../",3))
-        return s;
-	strncpy (path, p, TAMANO);
-	for (p=strtok(path,":"); p!=NULL; p=strtok(NULL,":")){
-       sprintf (aux2,"%s/%s",p,s);
-	   if (lstat(aux2,&st)!=-1)
-		return aux2;
-	}
-	return s;
+
+int job ( char * param[], JobList L){
+    posJ  p;
+    if (param[1]!=NULL) {
+        for (p = L->next; p != NULL; p = p->next) {
+        if (strcmp((param[1]), "-fg")== 0){
+            if (p->pid== strtol(param[2], NULL, 10)) {
+                waitpid(p->pid, NULL, 0);
+                if (strcmp(p->status, "ACTIVO") == 0) {
+                    printf("Proceso %d terminado normalmente. Valor devuelto %d\n", p->pid, p->returnstatus);
+                } else {
+                    printf("Proceso %d ya está finalizado\n", p->pid);
+                    break;
+                }
+            }
+        }else{
+            if ( p->pid == strtol(param[1], NULL, 10)){
+                struct tm *ctime = localtime(&p->time);
+                printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
+                       getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
+            }
+        }
+        }
+    }else{
+        dolistjobs(param, L);
+    }
+    return 1;
 }
-int OurExecvpe(const char *file, char *const argv[], char *const envp[])
-{
-   return (execve(Ejecutable(file),argv, envp);
-}
-int ValorSenal(char * sen)
-{
-  int i;
-  for (i=0; sigstrnum[i].nombre!=NULL; i++)
-  	if (!strcmp(sen, sigstrnum[i].nombre))
-		return sigstrnum[i].senal;
-  return -1;
-}
-*/
