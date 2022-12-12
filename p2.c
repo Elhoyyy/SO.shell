@@ -1589,7 +1589,6 @@ char * Nombre(uid_t u)
 
 int dolistjobs (char *param[], JobList L){
     posJ p;
-    char statuschar[TAMANO];
     for (p = L->next; p != NULL; p = p->next) {
         tipostatus(p);
 
