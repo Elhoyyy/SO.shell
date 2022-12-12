@@ -1589,6 +1589,7 @@ char * Nombre(uid_t u)
 
 int dolistjobs (char *param[], JobList L){
     posJ p;
+    char statuschar[TAMANO];
     for (p = L->next; p != NULL; p = p->next) {
         tipostatus(p);
 
@@ -1597,12 +1598,14 @@ int dolistjobs (char *param[], JobList L){
             printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
                    getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
-        else if((strcmp(p->status,"SEÑALADO")==0) || (strcmp(p->status,"STOPPED")==0) )
+        else if((strcmp(p->status,"SEÑALADO")==0) )
         {
-            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
-                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
+            strcpy(statuschar,NombreSenal(p->returnstatus));
+
+            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%s) %s\n", p->pid, Nombre(p->uid),
+                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, statuschar, p->lineacomando);
         }
-        else if (strcmp(p->status,"ACTIVO")==0)  {
+        else if (strcmp(p->status,"ACTIVO")==0 || (strcmp(p->status,"STOPPED")==0))  {
 
             printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
                    getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
