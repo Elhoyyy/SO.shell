@@ -1600,10 +1600,8 @@ int dolistjobs (char *param[], JobList L){
         }
         else if((strcmp(p->status,"SEÑALADO")==0) || (strcmp(p->status,"STOPPED")==0) )
         {
-            strcpy(statuschar,NombreSenal(p->returnstatus));
-
-            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%3s) %s\n", p->pid, Nombre(p->uid),
-                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, statuschar, p->lineacomando);
+            printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
+                   getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
         }
         else if (strcmp(p->status,"ACTIVO")==0)  {
 
@@ -1628,14 +1626,13 @@ void tipostatus (posJ p){
         }else if(WIFCONTINUED(p->returnstatus)) {
             p->status= "ACTIVO";
             p->returnstatus = 0;   //fariña cambio
-		}
+        }
     }
 }
 
 int doexecute(char* param[],JobList L){
     int j;
     int i=1;
-    //int pid;//, pid2;
     char* arg[TAMANO];
     arg[0]=NULL;
     while((j= BuscarVariable(param[i],environ))!=-1){
@@ -1660,16 +1657,16 @@ int doexecute(char* param[],JobList L){
         prio=1;
         prioridad= atoi(param[i]+1);
     }
-            if(prio==1)
-                setpriority(PRIO_PROCESS, getpid(),prioridad);
+    if(prio==1)
+        setpriority(PRIO_PROCESS, getpid(),prioridad);
 
-            if(arg[0]!=NULL){
-                if(OurExecvpe(ejecutable,opt,arg)==-1)
-                    perror("No se puede ejecutar el comando");
-            }else{
-                if(OurExecvpe(ejecutable,opt,environ)==-1)
-                    perror("No se puede ejecutar el comando");
-            }
+    if(arg[0]!=NULL){
+        if(OurExecvpe(ejecutable,opt,arg)==-1)
+            perror("No se puede ejecutar el comando");
+    }else{
+        if(OurExecvpe(ejecutable,opt,environ)==-1)
+            perror("No se puede ejecutar el comando");
+    }
     return 1;
 }
 
@@ -1799,10 +1796,10 @@ int deljobs (char *param[], JobList L){
         int term=0;
         int sig=0;
         while(param[i]!=NULL) {
-        //    if (strcmp(param[1], "-term") == 0) {                 //cambio fariña
-        //        term=1;                                           //cambio fariña
-        //    } else if (strcmp(param[1], "-sig") == 0) {           //cambio fariña
-        //        sig=1;                                            //cambio fariña
+            //    if (strcmp(param[1], "-term") == 0) {                 //cambio fariña
+            //        term=1;                                           //cambio fariña
+            //    } else if (strcmp(param[1], "-sig") == 0) {           //cambio fariña
+            //        sig=1;                                            //cambio fariña
 
             if (strcmp(param[i], "-term") == 0) {
                 term=1;
@@ -1815,16 +1812,14 @@ int deljobs (char *param[], JobList L){
         }
         posJ p;
         for (p = L->next; p != NULL; p = p->next) {
+            tipostatus(p);
             if (strcmp (p->status , "TERMINADO")==0 && term == 1){            // fariña: uninitilized (se un proceso aínda está activo)
                 deleteAtJPosition(p, L);
             }
             else if ( strcmp (p->status, "SEÑALADO")==0 && sig == 1){
                 deleteAtJPosition(p, L);
-
             }
         }
-
-
 
     }else{
         dolistjobs(param, L);
@@ -1870,13 +1865,16 @@ int job ( char * param[], JobList L){
         for (p = L->next; p != NULL; p = p->next) {
             if (strcmp((param[1]), "-fg")== 0){
                 if (p->pid== strtol(param[2], NULL, 10)) {
-                    waitpid(p->pid, NULL, 0);
-
                     //fariña, ojo ao seguinte... NON RECOLLEDES o estado no que rematou o proceso !!!!
                     // se o mato cunha señal --> vós dicides que morreu normalmente !!!
 
                     if (strcmp(p->status, "ACTIVO") == 0) {
+                        tipostatus(p);
+                        if(p->returnstatus==0){
                         printf("Proceso %d terminado normalmente. Valor devuelto %d\n", p->pid, p->returnstatus);
+                    }else{
+                            printf("Proceso %d terminado con la señal %s\n", p->pid, NombreSenal(p->returnstatus));
+                        }
                     } else {
                         printf("Proceso %d ya está finalizado\n", p->pid);
                         deleteAtJPosition(p, L);
