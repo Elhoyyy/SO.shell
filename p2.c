@@ -1654,7 +1654,7 @@ int doexecute(char* param[],JobList L){
         j++;
     }
     opt[j]=NULL;
-    
+
     int prio=0,prioridad=0;
     if(param[i]!=NULL && param[i][0]=='@'){
         prio=1;
@@ -1703,7 +1703,7 @@ int puntos(char *param[],JobList L){
     int pid, pid2;
     char* arg[TAMANO];
     arg[0] = NULL;
-    
+
     while((j= BuscarVariable(param[i],environ))!=-1){
         arg[i]=environ[j];
         i++;
@@ -1720,7 +1720,7 @@ int puntos(char *param[],JobList L){
         j++;
     }
     opt[j]=NULL;
-    
+
     int prio=0,back=0,prioridad=0;
     if(param[i]!=NULL && param[i][0]=='@'){
         prio=1;
@@ -1814,17 +1814,17 @@ int deljobs (char *param[], JobList L){
             i++;
         }
         posJ p;
-        for (p = L; p != NULL; p = p->next) {
-            if (WIFEXITED(p->returnstatus) && term == 1){            // fariña: uninitilized (se un proceso aínda está activo)
+        for (p = L->next; p != NULL; p = p->next) {
+            if (strcmp (p->status , "TERMINADO")==0 && term == 1){            // fariña: uninitilized (se un proceso aínda está activo)
                 deleteAtJPosition(p, L);
             }
-            else if ( WIFSIGNALED(p->returnstatus) && sig == 1){
+            else if ( strcmp (p->status, "SEÑALADO")==0 && sig == 1){
                 deleteAtJPosition(p, L);
-  
+
             }
         }
-  
-  
+
+
 
     }else{
         dolistjobs(param, L);
@@ -1871,22 +1871,23 @@ int job ( char * param[], JobList L){
             if (strcmp((param[1]), "-fg")== 0){
                 if (p->pid== strtol(param[2], NULL, 10)) {
                     waitpid(p->pid, NULL, 0);
-                    
+
                     //fariña, ojo ao seguinte... NON RECOLLEDES o estado no que rematou o proceso !!!!
                     // se o mato cunha señal --> vós dicides que morreu normalmente !!!
-                    
+
                     if (strcmp(p->status, "ACTIVO") == 0) {
                         printf("Proceso %d terminado normalmente. Valor devuelto %d\n", p->pid, p->returnstatus);
-                        deleteAtJPosition(p, L);
                     } else {
                         printf("Proceso %d ya está finalizado\n", p->pid);
+                        deleteAtJPosition(p, L);
                         break;
                     }
                 }
             }else{
                 if ( p->pid == strtol(param[1], NULL, 10)){
+                    tipostatus(p);
                     struct tm *ctime = localtime(&p->time);
-                    printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n", p->pid, Nombre(p->uid),
+                    printf("%d %12s p=%d %d/%02d/%02d %02d:%02d:%02d %s (%03d) %s\n",p->pid, Nombre(p->uid),
                            getpriority(PRIO_PROCESS, p->pid), ctime->tm_year+1900,ctime->tm_mon+1,ctime->tm_mday,ctime->tm_hour,ctime->tm_min,ctime->tm_sec, p->status, p->returnstatus, p->lineacomando);
                 }
             }
