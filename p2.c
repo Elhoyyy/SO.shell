@@ -199,7 +199,7 @@ int BuscarVariable(char* variable,char* entorno[]);
 int CambiarVariable(char * var, char * valor, char *e[]);
 int doshowenv(char *param[]);
 char * Ejecutable (char *s);
-int doexecute(char* param[]);
+int doexecute(char* param[],JobList L);
 int puntos(char *param[],JobList L);
 
 char **puntero;
@@ -378,7 +378,7 @@ int ProcesarEntrada(char * trozos[],tList Lista,MemoryList Listamemoria, JobList
         i = job (param, Listajobs);
 
     }else if(strcmp(param[0], "execute")==0){
-        i = doexecute (param);
+        i = doexecute (param,Listajobs);
 
     }else if(strcmp(param[0], "fork")==0){
         i = dofork (param);
@@ -1491,9 +1491,9 @@ int dopriority ( char *param[]){
     if ( param[1]!=NULL) {
         unsigned long p= strtoul(param[1], NULL, 10);
         if (param[2] != NULL){
-            unsigned long prio= strtoul(param[2], NULL, 10);
-            setpriority(PRIO_PROCESS, p,(int)prio );
-            printf("Prioridad del proceso %lu es %lu\n" ,p, prio);
+            int prio= atoi(param[2]);
+            setpriority(PRIO_PROCESS, p,(int)prio);
+            printf("Prioridad del proceso %lu es %d\n" ,p, prio);
         }else{
             printf("Prioridad del proceso %lu es %d\n" ,p, getpriority(PRIO_PROCESS, p));
         }
@@ -1624,23 +1624,55 @@ void tipostatus (posJ p){
             p->returnstatus = WTERMSIG(p->returnstatus);
         }else if(WIFSTOPPED(p->returnstatus)){
             p->status= "STOPPED";
-            p->returnstatus = WTERMSIG(p->returnstatus);
-        }else if(WIFCONTINUED(p->returnstatus))
+            p->returnstatus = WSTOPSIG(p->returnstatus);
+        }else if(WIFCONTINUED(p->returnstatus)) {
             p->status= "ACTIVO";
+            p->returnstatus = 0;   //fariña cambio
+		}
     }
 }
 
-int doexecute(char* param[]){
-    int i=0;
-    char *arg[TAMANO];
-    while(param[i+1]!=NULL) {
-        arg[i]=param[i+1];
+int doexecute(char* param[],JobList L){
+    int j;
+    int i=1;
+    //int pid;//, pid2;
+    char* arg[TAMANO];
+    arg[0]=NULL;
+    while((j= BuscarVariable(param[i],environ))!=-1){
+        arg[i]=environ[j];
         i++;
     }
+    arg[i]=NULL;
+    char *ejecutable=param[i];
+    char *opt[TAMANO];
+    j=0;
+    opt[0]=NULL;
 
-    OurExecvpe(param[1],arg,environ);
+    while(param[i]!=NULL && param[i][0]!='&' && param[i][0]!='@'){
+        opt[j]=param[i];
+        i++;
+        j++;
+    }
+    opt[j]=NULL;
+    
+    int prio=0,prioridad=0;
+    if(param[i]!=NULL && param[i][0]=='@'){
+        prio=1;
+        prioridad= atoi(param[i]+1);
+    }
+            if(prio==1)
+                setpriority(PRIO_PROCESS, getpid(),prioridad);
+
+            if(arg[0]!=NULL){
+                if(OurExecvpe(ejecutable,opt,arg)==-1)
+                    perror("No se puede ejecutar el comando");
+            }else{
+                if(OurExecvpe(ejecutable,opt,environ)==-1)
+                    perror("No se puede ejecutar el comando");
+            }
     return 1;
 }
+
 char * Ejecutable (char *s)
 {
     char path[TAMANO];
@@ -1669,32 +1701,51 @@ int puntos(char *param[],JobList L){
     int j;
     int i=0;
     int pid, pid2;
-    pid=fork();
-    pid2=getpid();
     char* arg[TAMANO];
+    arg[0] = NULL;
+    
     while((j= BuscarVariable(param[i],environ))!=-1){
         arg[i]=environ[j];
         i++;
     }
+    arg[i]=NULL;
+
     char *ejecutable=param[i];
     char *opt[TAMANO];
+    opt[0]=NULL;
     j=0;
     while(param[i]!=NULL && param[i][0]!='&' && param[i][0]!='@'){
         opt[j]=param[i];
         i++;
         j++;
     }
+    opt[j]=NULL;
+    
+    int prio=0,back=0,prioridad=0;
     if(param[i]!=NULL && param[i][0]=='@'){
-        char *aux=param[i]+1;
-        long prio= strtol(aux,NULL,10);
-        setpriority(PRIO_PROCESS,pid2 ,(int)prio );
+        prio=1;
+        prioridad= atoi(param[i]+1);
         i++;
-    }else if(param[i]!=NULL&&param[i][0]=='&'){
+    }
+
+    if(param[i]!=NULL && param[i][0]=='&'){
+        back=1;
+    }
+    pid=fork();
+    pid2=getpid();
+    if(back==1){
         if(pid==0){
+            if(prio==1)
+                setpriority(PRIO_PROCESS, pid2,prioridad);
+            printf("%d", getpriority(PRIO_PROCESS,pid2));
             if(arg[0]!=NULL){
-                OurExecvpe(ejecutable,opt,arg);
+                if(OurExecvpe(ejecutable,opt,arg)==-1)
+                    perror("No se puede ejecutar el comando");
+                exit(1);
             }else{
-                OurExecvpe(ejecutable,opt,environ);
+                if(OurExecvpe(ejecutable,opt,environ)==-1)
+                    perror("No se puede ejecutar el comando");
+                exit(1);
             }
         }else{
             time_t tiempoahora;
@@ -1714,11 +1765,17 @@ int puntos(char *param[],JobList L){
         }
     }else{
         if(pid==0){
+            if(prio==1)
+                setpriority(PRIO_PROCESS, pid2,(int)prioridad);
+            printf("%d", getpriority(PRIO_PROCESS,pid2));
             if(arg[0]!=NULL){
-                OurExecvpe(ejecutable,opt,arg);
+                if(OurExecvpe(ejecutable,opt,arg)==-1)
+                    perror("No se puede ejecutar el comando");
+                exit(1);
             }else{
-
-                OurExecvpe(ejecutable,opt,environ);
+                if(OurExecvpe(ejecutable,opt,environ)==-1)
+                    perror("No se puede ejecutar el comando");
+                exit(1);
             }
         }else{
             waitpid(pid,NULL,0);
@@ -1742,24 +1799,32 @@ int deljobs (char *param[], JobList L){
         int term=0;
         int sig=0;
         while(param[i]!=NULL) {
-            if (strcmp(param[1], "-term") == 0) {
+        //    if (strcmp(param[1], "-term") == 0) {                 //cambio fariña
+        //        term=1;                                           //cambio fariña
+        //    } else if (strcmp(param[1], "-sig") == 0) {           //cambio fariña
+        //        sig=1;                                            //cambio fariña
+
+            if (strcmp(param[i], "-term") == 0) {
                 term=1;
-            } else if (strcmp(param[1], "-sig") == 0) {
+            } else if (strcmp(param[i], "-sig") == 0) {
                 sig=1;
+
 
             } else break;
             i++;
         }
         posJ p;
         for (p = L; p != NULL; p = p->next) {
-            if (WIFEXITED(p->returnstatus) && term == 1){
+            if (WIFEXITED(p->returnstatus) && term == 1){            // fariña: uninitilized (se un proceso aínda está activo)
                 deleteAtJPosition(p, L);
             }
             else if ( WIFSIGNALED(p->returnstatus) && sig == 1){
                 deleteAtJPosition(p, L);
-
+  
             }
         }
+  
+  
 
     }else{
         dolistjobs(param, L);
@@ -1806,6 +1871,10 @@ int job ( char * param[], JobList L){
             if (strcmp((param[1]), "-fg")== 0){
                 if (p->pid== strtol(param[2], NULL, 10)) {
                     waitpid(p->pid, NULL, 0);
+                    
+                    //fariña, ojo ao seguinte... NON RECOLLEDES o estado no que rematou o proceso !!!!
+                    // se o mato cunha señal --> vós dicides que morreu normalmente !!!
+                    
                     if (strcmp(p->status, "ACTIVO") == 0) {
                         printf("Proceso %d terminado normalmente. Valor devuelto %d\n", p->pid, p->returnstatus);
                         deleteAtJPosition(p, L);
