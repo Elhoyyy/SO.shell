@@ -18,7 +18,7 @@ bool createNodeJob( posJ* p){
     return *p!=NULL;
 }
 
-bool insertJobList(JobList L, int pid, char* status, int priority , char *lineacomnando, time_t tiempo, uid_t  uid){
+bool insertJobList(JobList L, int pid, char* status, int priority , char lineacomnando[TAMANO], time_t tiempo, uid_t uid){
     posJ p, q; //LAS VARIABLES 'r' Y 'q' ACTUÁN COMO NODOS PARA APUNTAR AL NODO QUE QUEREMOS INTRODUCIR EN LA LISTA.
 
     if (!createNodeJob(&q)) //SI NO HAY NODO SE RETORNA FALSO.
@@ -28,6 +28,7 @@ bool insertJobList(JobList L, int pid, char* status, int priority , char *lineac
     q->priority=priority;
     strcpy(q->lineacomando,lineacomnando);
     q->time=tiempo;
+    q->returnstatus = 0;
     q->uid=uid;
     q->next = NULL;
     if (L->next == NULL) { //LISTA VACÍA.
@@ -53,6 +54,7 @@ void deleteAtJPosition (posJ p, JobList L) {
         p->status=q->status;
         p->priority=q->priority;
         p->time=q->time;
+        p->returnstatus=q->returnstatus;
         p->next = q->next;
         p->uid = q->uid;
 
