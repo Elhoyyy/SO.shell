@@ -1,45 +1,43 @@
+//
+// Created by elhoyyy on 25/11/22.
+//
 
-//
-// Created by dani on 30/10/22.
-//
+#ifndef PRUEBA_HEADED_LINKED_JOBLIST_H
+#define PRUEBA_HEADED_LINKED_JOBLIST_H
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
-#define MALLOC 1
-#define SHARED 2
-#define MMAP 3
-#define P0_LIST_H
-#define LNULL NULL
-#ifndef UNTITLED1_HEADED_LINKED_MEMORYLIST_H
-#define UNTITLED1_HEADED_LINKED_MEMORYLIST_H
 #include <time.h>
+#define TAMANO 2048
 
-typedef struct MemoryNode* pos;
+#define ACTIVE 3
+#define SIGNALED 2
+#define STOPPED 1
+#define FINISHED 0
 
-typedef struct MemoryNode{
-    void *address;
+typedef struct JobNode* posJ;
+
+
+struct JobNode{
+    int pid;
+    uid_t  uid;
+    char * status;
+    int priority;
+    int returnstatus;
     time_t time;
-    char fich[256];
-    int id;
-    int tipo;
-    long size;
-    int key;
-    pos next;
+    posJ next;
+    char lineacomando[TAMANO];
+};
 
-}MemoryNode;
+typedef posJ JobList;
 
-typedef pos MemoryList;
 
-void createMemoryList(MemoryList * L);
-bool insertMemory(MemoryList L, int tipo, char* dirrecion,time_t t,long tamano, int df, char* nombre,int key);
-pos EncontrarPosicion(MemoryList Lista, char* direccion);
-pos EncontrarTamano(MemoryList Lista, long tamano);
-pos EncontrarFichero(MemoryList Lista, char* nombre);
-void deleteAtPosition (pos p, MemoryList L);
-char* getAdrres(pos p);
-char *ptr2string( const void *ptr );
-pos EncontrarLlave(MemoryList Lista, int key);
-void deleteMemorylist (MemoryList L);
+void createJobList(JobList * L);
+bool insertJobList(JobList L, int pid, char* status, int priority , char lineacomnando[TAMANO], time_t tiempo, uid_t  uid);
+void deleteAtJPosition (posJ p, JobList L);
 
-#endif //UNTITLED1_HEADED_LINKED_MEMORYLIST_H
+
+
+#endif //PRUEBA_HEADED_LINKED_JOBLIST_H
