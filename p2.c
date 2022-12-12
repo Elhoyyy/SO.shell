@@ -232,8 +232,6 @@ int main(int arg,char *argv[], char *env[]){
     free (Lista);
     deleteMemorylist(Listamemoria);
     free(Listamemoria);
-    deleteJoblist(Listajobs);
-    free(Listajobs);
     return 1;
 }
 
@@ -1871,10 +1869,10 @@ int job ( char * param[], JobList L){
                 if (p->pid== strtol(param[2], NULL, 10)) {
                     //fariña, ojo ao seguinte... NON RECOLLEDES o estado no que rematou o proceso !!!!
                     // se o mato cunha señal --> vós dicides que morreu normalmente !!!
-                    tipostatus(p);
                     if (strcmp(p->status, "ACTIVO") == 0) {
                         if(p->returnstatus==0){
                             waitpid(p->pid,NULL,0);
+                            tipostatus(p);
                         printf("Proceso %d terminado normalmente. Valor devuelto %d\n", p->pid, p->returnstatus);
                     }else{
                             printf("Proceso %d terminado con la señal %s\n", p->pid, NombreSenal(p->returnstatus));
