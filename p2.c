@@ -1662,7 +1662,7 @@ int doexecute(char* param[],JobList L){
     if(prio==1)
         setpriority(PRIO_PROCESS, getpid(),prioridad);
 
-    if(arg[0]!=NULL){
+    if(arg[1]!=NULL){
         if(OurExecvpe(ejecutable,opt,arg)==-1)
             perror("No se puede ejecutar el comando");
     }else{
@@ -1819,10 +1819,14 @@ int deljobs (char *param[], JobList L){
                 deleteAtJPosition(p, L);
             }
             else if ( strcmp (p->status, "SEÑALADO")==0 && sig == 1){
+                if(p->next==NULL){
                 deleteAtJPosition(p, L);
+                break;
+            }else{
+                deleteAtJPosition(p,L);
             }
         }
-
+        }
     }else{
         dolistjobs(param, L);
     }
